@@ -1,50 +1,51 @@
-# Nexus Forge — Status Real (MVP Fase 1)
+# Nexus Forge — Status Real (v0.9.0)
 
 > Regra da casa: nada de "Coming Soon" falso. Este documento distingue
 > **verificado por teste**, **implementado sem teste** e **arquitetura pronta**.
 
 ## ✅ Verificado por teste (nesta máquina: Linux Mint 22, Bun 1.4.2)
 
-- **Pipeline completo offline (sem LLM):** ideia → plano determinístico →
-  Game DNA → GDD → arquitetura → scaffold Godot → task graph → validação
-  headless → **playable**. Testado nos 3 starters (topdown, platformer, 3D).
-- **Pipeline com LLM (OpenRouter + z-ai/glm-5.3-flash):** planejamento autoral
-  em PT-BR (tasks específicas da ideia), codegen de sistemas GDScript novos
-  (`day_night_cycle.gd`, `night_creature.gd`) com **validação PASS na 1ª
-  rodada** e commit git por task.
-- **Download oficial do Godot 4.3** (GitHub Releases → ~/.nexusforge/engines)
-  e detecção de engine existente.
-- **Servidor HTTP+WS** (127.0.0.1:5180): API REST completa + feed de eventos
-  em tempo real + UI construída (React/Vite/Tailwind v4).
-- **Importação de chave via arquivo ou colagem** (armazenada AES-256-GCM).
-- **Typecheck estrito (tsc --noEmit)** do core e da UI: 0 erros.
+- **Pipeline completo (8 estágios):** ideia → GameSpecification → DNA → GDD →
+  arquitetura → scaffold com assets (Art Bible) → tasks → buildout (coder LLM +
+  validação + fixer ×3) → validate (smoke-run autoritativo) → **playable**.
+  E2E de referência: `bun run scripts/e2e-rescaffold.ts` → `true null`.
+- **Metroidvania genre pack:** parry/i-frames, FSM, boss 2 fases com cinematic,
+  NPC dialogue, ability gates, checkpoints, mapa, weather, parallax, gamepad.
+- **Art Bible + assets:** pixel art v2 de nível estúdio (ramps hue-shifted,
+  sel-out, rim light, dithering) — herói, criatura, boss, NPC, tiles, céu,
+  **e props v2 (bonfire, orb, shard, glow)**. Validador anti-drift com budgets.
+- **QA visual multimodal (§14):** screenshot REAL do jogo (movie-writer) →
+  ladder de visão gratuito (nemotron → qwen → gemma) com retry — medido
+  funcionando de ponta a ponta (PASS e FAIL com achados reais). Integrado ao
+  estágio validate: escreve `docs/qa-report.md` e abre task de reparo em FAIL.
+- **System map (§11.3):** coder LLM recebe o mapa sistema→arquivo→knob do
+  genre pack (tuning vai para `data/*.json`, não para código).
+- **Steam Publish Kit (21 arquivos)** + capsules reais + screenshots reais.
+- **Live Preview:** export Web real (WASM) rodando dentro do estúdio.
+- **Builds standalone dos jogos** (.exe/Linux) e **do estúdio**
+  (`dist-release/`, UI embutida, smoke-testado: UI 200 / API 200).
+- **Estúdio no GitHub Pages:** `/studio/` (SPA com snapshot REAL de um projeto
+  forjado — DNA, tasks, código, assets, QA report — e preview jogável embutido)
+  + demo WASM do jogo no `/demo/`. Mutações respondem honestamente no modo demo.
+- **Testes:** 28 testes / 180 asserts verdes; typecheck estrito core+UI: 0 erros.
+- **Segurança:** chave AES-256-GCM fora do repo (grep verificado); servidor
+  localhost-only; paths de agentes contidos ao workspace.
 
 ## 🟡 Implementado, ainda não testado nesta máquina
 
-- **Windows:** `scripts/start.bat`, download do Godot `win64.exe`,
-  detecção em caminhos do Windows. Bun roda nativamente em Windows; o core
-  usa apenas APIs multi-OS (`os.homedir`, `path.join`). NÃO executamos o
-  teste aqui (máquina de dev é Linux). Reporte issues.
-- **macOS:** `start.command`, download do binário `universal`,
-  detecção em /Applications. Mesmo acima.
-- **Unreal 5 scaffold:** gera .uproject/Source/Config corretos (texto
-  puro); a **compilação** exige UE5 instalado e não foi executada aqui.
+- **Windows/macOS:** código multi-OS pronto, exes publicados; máquina de dev é
+  Linux — reporte issues.
+- **Unreal 5 scaffold:** gera .uproject/Source/Config; compilação exige UE5.
 
 ## 🟠 Limitações conhecidas (honestas)
 
-- A validação headless compila **a cadeia main-scene + autoloads**. Scripts
-  fora da cadeia (ainda não conectados) só são compilados quando conectados.
-  (O `--check-only` do Godot não registra autoloads e produz falso-positivo —
-  medido; por isso não é usado como gate.)
-- Playtesting autônomo com métricas: **Fase 5** (hooks existem, loop não).
-- Asset pipeline / geração de assets: **Fase 6** (tipos no schema, UI não).
-- Unity adapter: **Fase 7** (interface pronta, implementação não).
-- O deploy "app desktop empacotado" (Tauri) é Fase 2; hoje o studio roda
-  como servidor local + browser — 100% funcional.
-
-## Contratos de segurança mantidos
-
-- Chaves: `~/.nexusforge/secrets.enc` (AES-256-GCM, scrypt, 0600). Repo limpo
-  (verificado com grep — zero ocorrências de chaves).
-- Servidor bindado em localhost; uploads limitados a 25MB.
-- Paths dos agentes contidos ao workspace (fuga de path é exceção).
+- Endpoints de visão **gratuitos** são instáveis (429/ResourceExhausted) — o
+  ladder com retry cobre na maioria das vezes; quando falha, o QA pula com
+  aviso honesto (nunca bloqueia o build). Créditos de **imagem** (Gemini)
+  depletam rápido (402 tratado).
+- 3D: text-to-3D ainda não (interface `ModelGenerationProvider` pronta).
+- Música: só SFX sintetizados.
+- Playtesting autônomo com métricas: Fase 5 (hooks existem, loop não).
+- Unity adapter: Fase 7 (interface pronta, implementação não).
+- O estúdio WEB (Pages) é demo estático de um projeto real — forjar novos
+  jogos exige o app (física do hosting estático, documentada no banner).

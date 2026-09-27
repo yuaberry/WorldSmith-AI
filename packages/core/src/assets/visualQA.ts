@@ -65,41 +65,63 @@ class OpenRouterVisionProvider implements VisionProvider {
   async analyze(image: Uint8Array, instructions: string): Promise<{ ok: boolean; pass?: boolean; issues?: string[]; error?: string }> {
     const key = getCredential("openrouter");
     if (!key) return { ok: false, error: "no key" };
-    const model = getSetting<string>("providers.openrouter.visionModel", "z-ai/glm-5.3");
     const b64 = Buffer.from(image).toString("base64");
-    try {
-      const res = await fetch(API, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Title": "Nexus Forge" },
-        body: JSON.stringify({
-          model,
-          messages: [{
-            role: "user",
-            content: [
-              { type: "text", text: instructions },
-              { type: "image_url", image_url: { url: `data:image/png;base64,${b64}` } },
-            ],
-          }],
-          response_format: { type: "json_object" },
-          max_tokens: 900,
-        }),
-        signal: AbortSignal.timeout(90_000),
-      });
-      if (!res.ok) {
-        const body = await res.text().catch(() => "");
-        return { ok: false, error: `HTTP ${res.status}: ${body.slice(0, 120)}` };
+    // Free vision endpoints are flaky (ResourceExhausted/Provider errors are
+    // transient) — climb a measured ladder with backoff instead of giving up.
+    // Nemotron proved the most reliable (measured) so it gets 3 of 5 slots.
+    const ladder = [
+      getSetting<string>("providers.openrouter.visionModel", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
+      "qwen/qwen3.8-27b:free",
+      "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "google/gemma-4-31b-it:free",
+      "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    ];
+    let lastErr = "vision unavailable";
+    for (let attempt = 0; attempt < ladder.length; attempt++) {
+      const model = ladder[attempt]!;
+      try {
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Title": "Nexus Forge" },
+          body: JSON.stringify({
+            model,
+            messages: [{
+              role: "user",
+              content: [
+                { type: "text", text: instructions },
+                { type: "image_url", image_url: { url: `data:image/png;base64,${b64}` } },
+              ],
+            }],
+            max_tokens: 2000,
+          }),
+          signal: AbortSignal.timeout(90_000),
+        });
+        if (!res.ok) {
+          const body = await res.text().catch(() => "");
+          lastErr = `HTTP ${res.status} (${model}): ${body.slice(0, 100)}`;
+          if (res.status === 401 || res.status === 402) break; // auth/credits: fail fast
+          await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+          continue;
+        }
+        const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+        const content = data.choices?.[0]?.message?.content ?? "";
+        if (!content.trim()) { // reasoning models can emit empty content turns
+          lastErr = `empty response (${model})`;
+          await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+          continue;
+        }
+        const fenced = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+        const candidate = fenced ? fenced[1]! : content;
+        const start = candidate.indexOf("{"), end = candidate.lastIndexOf("}");
+        const parsed = z.object({ pass: z.boolean(), issues: z.array(z.string()).default([]) })
+          .parse(JSON.parse(candidate.slice(start, end + 1)));
+        return { ok: true, pass: parsed.pass, issues: parsed.issues };
+      } catch (e) {
+        lastErr = e instanceof Error ? e.message : String(e);
+        await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
       }
-      const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-      const content = data.choices?.[0]?.message?.content ?? "";
-      const fenced = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-      const candidate = fenced ? fenced[1]! : content;
-      const start = candidate.indexOf("{"), end = candidate.lastIndexOf("}");
-      const parsed = z.object({ pass: z.boolean(), issues: z.array(z.string()).default([]) })
-        .parse(JSON.parse(candidate.slice(start, end + 1)));
-      return { ok: true, pass: parsed.pass, issues: parsed.issues };
-    } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : String(e) };
     }
+    return { ok: false, error: lastErr };
   }
 }
 

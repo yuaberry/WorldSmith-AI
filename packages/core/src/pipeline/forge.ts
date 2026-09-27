@@ -178,21 +178,9 @@ async function stageScaffold(p: ProjectRow, ws: Workspace, git: GitRepo, plan: G
     shortDescription: plan.shortDescription,
   };
   const result = await adapter.createProject(ws.root, spec);
-  // §14 — screenshot QA (async, credit-aware, never blocks the build)
-  if (plan.engine === "godot4") {
-    try {
-      const { runScreenshotQA } = await import("../assets/visualQA");
-      const { Godot4Adapter } = await import("../engines/godot");
-      const { deriveBible } = await import("../assets/artBible");
-      const { homedir } = await import("node:os");
-      const det = await new Godot4Adapter().detect();
-      if (det.installed && det.path) {
-        const bible = deriveBible({ title: spec.title, idea: spec.shortDescription });
-        void runScreenshotQA(p.id, ws.root, det.path, bible).catch(() => undefined);
-      }
-      void homedir;
-    } catch { /* QA is a bonus */ }
-  }
+  // NOTE: sprite QA (contact sheet) runs inside the asset gate at compose time;
+  // screenshot QA runs in the VALIDATE stage (awaited, writes docs/qa-report.md,
+  // opens a repair task on FAIL) — no duplicate fire-and-forget here anymore.
   await git.ensureCommitted(`scaffold: ${plan.engine} project (${plan.flavor} starter)`);
   stage(p.id, "scaffold", `Engine project created: ${result.files.length} files on ${adapter.label}.`, "success");
   for (const n of result.notes) stage(p.id, "scaffold", n, "info");
@@ -238,9 +226,11 @@ async function stageBuildout(p: ProjectRow, ws: Workspace, git: GitRepo, plan: G
         }
       } else {
         // code / ui / assets / audio → coder agent (LLM) with validation loop
+        const { systemMapFor } = await import("../engines/systems/systemMap");
         const res = await runCoderTask({
           projectId: p.id, task, ws, adapter,
           dnaSections: ["vision", "coreFantasy", "designPillars", "gameplayLoop", "mechanics", "engine", "artDirection"],
+          systemMap: systemMapFor(plan.flavor, plan.engine),
         });
         if (res.ok) {
           updateTask(task.id, { status: "completed", result: `Done in ${res.rounds} round(s); files: ${res.touchedFiles.join(", ").slice(0, 200)}`, files: res.touchedFiles });
@@ -293,6 +283,41 @@ async function stageValidate(p: ProjectRow, ws: Workspace, git: GitRepo, plan: G
         }
       }
     } catch { /* preview is a bonus, never blocks the pipeline */ }
+    // §14 in the validate loop — REAL screenshot inspected against the Art
+    // Bible. Credit/display-aware (skips honestly); result lands in the repo
+    // and a FAIL opens a repair task for the coder agent.
+    if (p.engine === "godot4") {
+      try {
+        const { runScreenshotQA } = await import("../assets/visualQA");
+        const { deriveBible } = await import("../assets/artBible");
+        const { Godot4Adapter } = await import("../engines/godot");
+        const det = await new Godot4Adapter().detect();
+        if (det.installed && det.path) {
+          const bible = deriveBible({ title: p.name, idea: p.idea });
+          const qa = await runScreenshotQA(p.id, ws.root, det.path, bible);
+          if (qa.checked) {
+            ws.write("docs/qa-report.md", `# Visual QA Report (screenshot)\n\nResult: **${qa.pass ? "PASS" : "FAIL"}**\n\n${(qa.issues ?? []).map((i) => `- ${i}`).join("\n")}\n`);
+            if (!qa.pass) {
+              const issues = (qa.issues ?? []).slice(0, 5).join(" | ");
+              const alreadyQueued = listTasks(p.id).some((t) => t.status === "pending" && t.title === "Address screenshot QA findings");
+              if (!alreadyQueued) {
+                insertTasks(p.id, [{
+                  title: "Address screenshot QA findings",
+                  description: `Visual QA flagged: ${issues}. Adjust data-driven visual settings (HUD, camera, contrast) and re-validate. See docs/qa-report.md.`,
+                  type: "fix", priority: 1, dependsOn: [], risk: "low", requiresApproval: false,
+                }]);
+                stage(p.id, "validate", `Visual QA FAIL — repair task created (${(qa.issues ?? []).length} finding(s)).`, "warning");
+              } else {
+                stage(p.id, "validate", `Visual QA FAIL again — repair task already queued (${(qa.issues ?? []).length} finding(s)).`, "warning");
+              }
+            } else {
+              stage(p.id, "validate", "Visual QA PASS — screenshots match the Art Bible.", "success");
+            }
+            await git.ensureCommitted(`visual QA: ${qa.pass ? "PASS" : "FAIL (repair task)"}`);
+          }
+        }
+      } catch { /* QA is credit/display-dependent — never blocks validate */ }
+    }
     return true;
   }
   ws.write("docs/validation-report.md", `# Validation Report\n\nResult: **FAIL**\n\n${v.issues.map((i) => `- [${i.file}${i.line ? `:${i.line}` : ""}] ${i.message}`).join("\n")}\n`);

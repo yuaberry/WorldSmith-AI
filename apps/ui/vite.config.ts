@@ -4,6 +4,9 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // relative base: the same dist serves from the exe (localhost root),
+  // GitHub Pages (/nexus-forge/studio/) and any static folder.
+  base: "./",
   server: {
     port: 5183,
     proxy: {

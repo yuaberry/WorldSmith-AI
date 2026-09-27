@@ -15,6 +15,7 @@ import { dnaContext } from "../dna";
 import type { Workspace } from "../workspace";
 import { bus } from "../events";
 import type { EngineAdapter, ValidationResult } from "../engines/types";
+import { systemMapSection, type SystemEntry } from "../engines/systems/systemMap";
 
 const FileOp = z.object({
   path: z.string().min(1),
@@ -65,12 +66,13 @@ function applyPlan(ws: Workspace, plan: z.infer<typeof CoderPlan>): { applied: s
   return { applied, errors };
 }
 
-function taskPrompt(task: Task, ws: Workspace, dna: string, extra: string): string {
+function taskPrompt(task: Task, ws: Workspace, dna: string, extra: string, systemMap?: SystemEntry[]): string {
   const tree = ws.treeText(300);
   return `## TASK
 Title: ${task.title}
 Description: ${task.description}
 ${extra ? `\n## VALIDATION FEEDBACK\n${extra}\n` : ""}
+${systemMapSection(`${task.title} ${task.description}`, systemMap ?? [])}
 ## GAME DNA (authoritative)
 ${dna}
 
@@ -112,6 +114,7 @@ export async function runCoderTask(opts: {
   ws: Workspace;
   adapter: EngineAdapter;
   dnaSections: Parameters<typeof dnaContext>[1];
+  systemMap?: SystemEntry[];
 }): Promise<CoderResult> {
   const { projectId, task, ws, adapter, dnaSections } = opts;
   const notes: string[] = [];
@@ -136,7 +139,7 @@ export async function runCoderTask(opts: {
     rounds++;
     const role = rounds === 1 ? "coder" : "fixer";
     const prompt = role === "coder"
-      ? taskPrompt(task, ws, dna, "")
+      ? taskPrompt(task, ws, dna, "", opts.systemMap)
       : fixerPrompt(task, ws, lastIssues, [...touchedAll]);
 
     bus.emit({ projectId, taskId: task.id, agent: role, stage: "buildout", level: "info", message: `Round ${rounds}: ${role === "coder" ? "planning file operations" : "repairing validation errors"}…` });

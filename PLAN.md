@@ -101,8 +101,13 @@
 > **Resultado v0.8**: `pixelRamp.ts` (hue-shift, sel-out, rim-light, dithering), herói 24×24 com capa esvoaçante/armadura 3-tonos/espada com glow, criatura/boss/NPC v2, tiles com bevel+AO+rachaduras, céu dithered com skyline por bioma + lua, escalas calibradas ao hitbox, pintores legados delegando aos v2.
 
 ### S3-K — PLAN.md (memória)
-> "atualize o PLAN.md com tudo que foi feito, porque vou **compactar o chat**" + (atual) "adicione **todos os prompts**, garanta que vai **continuar certo**, coloque o **prompt inicial**, a **visão do projeto**, tudo que ele precisa para **continuar daqui sem errar nada**."
-> **Resultado**: este documento (§1 Visão, §2 Prompt inicial, §3 Arquivo de prompts, §9 Protocolo de Retomada).
+> "atualize o PLAN.md com tudo que foi feito, porque vou **compactar o chat**" + "adicione **todos os prompts**, garanta que vai **continuar certo**, coloque o **prompt inicial**, a **visão do projeto**, tudo que ele precisa para **continuar daqui sem errar nada**."
+> **Resultado**: PLAN.md v2 (§1 Visão, §2 Prompt inicial, §3 Arquivo de prompts, §9 Protocolo de Retomada) + §13 AGENTES.
+
+### S3-L — Execução do direcionamento + Estúdio no Pages (v0.9.0)
+> "agora continue com esse direcionamento, fazendo tudo que não foi feito anteriormente e **implemente o estúdio no Github Pages (tire do localhost)**"
+> **Resultado v0.9.0**: Etapa 1 (Plan.MD → stub arquivado; §13 AGENTES merged); **§11.1** propsPainters v2 (bonfire com bacia bevelada+embers, orb com halo dithered+rune sparks, shard com facet planes+sparkle orbit, glow com falloff dithered); **§11.2** screenshot QA integrado AO validate (awaited, escreve docs/qa-report.md, FAIL → task de reparo com guard anti-duplicata; ladder de visão gratuito com retry medido — nemotron/qwen/gemma); **§11.3** systemMap.ts (gênero→sistema→arquivo→knob injetado no prompt do coder; tuning=data); **Estúdio Web no Pages**: `apps/ui/src/lib/demo.ts` (detecção honesta backend↔snapshot + intercept fetch com rotas read-only reais e mutações honestas 400), `scripts/export-demo-data.ts` (snapshot REAL: DB+docs+código+sprites base64), HashRouter + base './' (mesmo dist serve exe/Pages/estático), `docs/studio/` publicado + nav "Estúdio Web" no site + demo WASM regenerada; exes reconstruídos e smoke-testados; STATUS.md reescrito (era v0.1).
+> **Invariantes novas**: (15) ladder de visão gratuita é flaky — retry 5 tentativas com backoff, 401/402 fail-fast; (16) o mesmo dist UI deve servir em localhost-root (exe), subpath (/studio/) e dev — por isso base './' + HashRouter; (17) snapshot demo = dados REAIS exportados do projeto, nunca mock; mutações do demo respondem 400 com mensagem honesta.
 
 
 ---
@@ -111,7 +116,7 @@
 
 | Item | Valor |
 |---|---|
-| Versão | **v0.8.0** (commit `5d44994`) — Studio-Grade Pixel Art |
+| Versão | **v0.9.0** — Estúdio Web no Pages + QA no validate + system map + props v2 |
 | Repo | `~/nexus-forge/` · https://github.com/yuaberry/nexus-forge (MIT, `gh` logado como `yuaberry`) |
 | Site+demo | https://yuaberry.github.io/nexus-forge/ (Pages serve `docs/`; demo WASM em `docs/demo/`) |
 | Executáveis | `dist-release/nexus-forge.exe` (Win) · `nexus-forge` (Linux) · `nexus-forge-macos` — UI embutida |
@@ -138,6 +143,7 @@ packages/core/src/
 │   ├── heroPainter.ts (paintHeroV2 24×24 poses paramétricas) · creaturePainters.ts (creature/boss/npc v2)
 │   ├── envPainters.ts (tiles stone/wood/crystal + sky dithered+skyline+lua)
 │   ├── spriteForge.ts (encoder PNG puro + pintores legados delegando a v2 + slots animados)
+│   ├── propsPainters.ts (v2: bonfire/orb/shard/glow — dithered halo, facets, embers)
 │   ├── animPack.ts / animPackBuilder.ts (9 anims player com eventos; FSM enemy; boss) → data/animations.json
 │   ├── artBible.ts (ArtBible zod + deriveBible + styleFromPrompt + bibleToMarkdown + identidades canônicas)
 │   ├── materials.ts (materiais semânticos) · supportAssets.ts (portraits/ícones/prompts/logo)
@@ -149,11 +155,13 @@ packages/core/src/
 │   ├── systems/ mv_player (state machine 9 estados + parry + anim events) · mv_entities (FSM/boss cinema/npc)
 │   │             mv_world (GameState + sprite_frames_for + room loader/checkpoint/pickup) · mv_ui (HUD/diálogo/mapa/menu)
 │   ├── godotExport.ts (templates streaming + import→exportWeb) · publish/ (storeKit 21 arquivos + builds .exe)
+│   ├── systems/ systemMap.ts (§11.3: sistema→arquivo→knob por gênero, injetado no coder)
 ├── agents/ prompts.ts (personas) + runtime.ts (coder→validação→fixer ×3) · providers/ (AIProvider+OpenRouter+registry)
 ├── dna/ knowledge/ db/ events.ts settings.ts workspace.ts git.ts
 packages/shared (zod: DnaSection/Origin, Task, ForgeStage, GameBrief) · apps/ui (wizard, dashboard, Live
-Preview, Steam Kit, Assets, DNA, Code, Logs, Settings) · scripts/ (start.*, build-release.ts, e2e-rescaffold.ts)
-docs/ (site + demo WASM + STATUS.md) · tests/ (28)
+Preview, Steam Kit, Assets, DNA, Code, Logs, Settings, lib/demo.ts — modo web-demo com intercept) · scripts/
+(start.*, build-release.ts, e2e-rescaffold.ts, export-demo-data.ts, test-vision-qa.ts)
+docs/ (site + demo WASM + studio/ = UI compilada com snapshot + STATUS.md) · tests/ (28)
 ```
 
 ## 6. PIPELINES (fluxo real)
@@ -227,20 +235,28 @@ cd ~/.nexusforge/projects/hollow-echoes && \
 - Pintores pequenos (checkpoint/pickup/shard/glow) ainda pré-v2
 - Windows/macOS: código multi-OS pronto, testes reais pendentes (dev é Linux)
 
-## 11. PRÓXIMAS PRIORIDADES (ordem)
+## 11. PRÓXIMAS PRIORIDADES (ordem — 1-3 entregues na v0.9.0)
 
-1. Pintores v2 para checkpoint/pickup/shard/glow (fechar refinamento visual)
-2. Vision QA no loop do validate (screenshots do JOGO + regen automático)
-3. Mapear tasks do genre pack → arquivos específicos para o coder LLM
-4. Text-to-3D: image-to-mesh → GLTF → import → LOD/collision → manifest
+1. ~~Pintores v2 checkpoint/pickup/shard/glow~~ ✅ v0.9.0 (propsPainters.ts)
+2. ~~Vision QA no loop do validate~~ ✅ v0.9.0 (qa-report.md + repair task; ladder com retry)
+3. ~~Mapear tasks do genre pack → coder LLM~~ ✅ v0.9.0 (engines/systems/systemMap.ts)
+4. **Text-to-3D: image-to-mesh → GLTF → import → LOD/collision → manifest** (próximo marcos)
 5. Atlas packing + .import profiles reais por plataforma (tiers LOW→ULTRA)
 6. Genre packs: third-person action (lock-on), racing
 7. Geração de música por estado (explore/combat/boss)
 8. Tauri shell (desktop nativo; hoje o exe abre o navegador — aceitável, documentado)
+9. Melhorias no Estúdio Web: selecionar múltiplos projetos-snapshot, tour guiado, embed do site de cada jogo
+
+## 13. AGENTES & AMBIENTE OPENCODE (merge do Plan.MD histórico)
+
+- **Plataforma desta máquina**: OpenCode + configuração **Yua Devs** (`~/.config/opencode/AGENTS.md`).
+- **Agentes disponíveis**: `architect` (planeja, não edita) · `builder` (implementa) · `game-dev` (natural p/ este projeto) · `reviewer` (audita) · `debugger` (causa raiz) · `quick` — subagentes: `debugger`, `explore`, `general`, `reviewer`.
+- **Uso correto**: mudanças grandes → `architect` direciona, `builder` executa, `reviewer` audita; bugs → `debugger` antes de `builder`.
+- **Plan.MD**: stub arquivado — APENAS PLAN.md é canônico (ver §0 e o topo do Plan.MD).
 
 ## 12. REGRAS DA CASA (Yua Devs)
 
 1. Ler antes de alterar; causa raiz antes de consertar. 2. Zero dados falsos. 3. Passos pequenos, verificados, testados. 4. Registrar erros próprios (§7). 5. Segredos fora do repo. 6. Nunca inventar API — medir contra o runtime. 7. "Do not say 'I would implement…' — actually implement it." 8. Ao terminar cada fase: testes reais → corrigir → commit → push → atualizar PLAN.md/STATUS.
 
 ---
-_Atualizado em 2026-09-26 (pós-v0.8.0) para sobreviver à compactação. Fontes de verdade: este arquivo + `git log --oneline` + `gh release list` (v0.1→v0.8.0)._
+_Atualizado em 2026-09-27 (v0.9.0 — estúdio no Pages, QA no validate, system map, props v2) para sobreviver à compactação. Fontes de verdade: este arquivo + `git log --oneline` + `gh release list` (v0.1→v0.9.0)._

@@ -1,10 +1,11 @@
-/** Global live state: WS event stream + status polling. */
+/** Global live state: WS event stream + status polling (+ web-demo flag). */
 import { create } from "zustand";
 import type { EventDto, StatusDto } from "./lib/api";
 
 interface NexusState {
   ws: WebSocket | null;
   connected: boolean;
+  demo: boolean;
   events: EventDto[];
   status: StatusDto | null;
   connect: () => void;
@@ -15,11 +16,12 @@ interface NexusState {
 export const useNexus = create<NexusState>((set, get) => ({
   ws: null,
   connected: false,
+  demo: false,
   events: [],
   status: null,
 
   connect: () => {
-    if (get().ws) return;
+    if (get().ws || get().demo) return; // web demo: no backend to connect
     const proto = location.protocol === "https:" ? "wss" : "ws";
     const ws = new WebSocket(`${proto}://${location.host}/ws`);
     ws.onopen = () => set({ connected: true });

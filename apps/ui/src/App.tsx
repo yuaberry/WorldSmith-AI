@@ -1,11 +1,12 @@
 /** Nexus Forge — application shell: sidebar hub + topbar + routed views. */
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { HashRouter, Routes, Route, useNavigate } from "react-router-dom";
 import {
-  LayoutGrid, Hammer, Sparkles, Settings2, ChevronRight, Cpu, Boxes, Star,
+  LayoutGrid, Hammer, Sparkles, Settings2, ChevronRight, Cpu, Boxes, Star, Globe,
 } from "lucide-react";
 import { useNexus } from "./store";
 import { api, type ProjectDto } from "./lib/api";
+import { initDemo } from "./lib/demo";
 import Home from "./features/Home";
 import CreateGame from "./features/CreateGame";
 import ProjectView from "./features/ProjectView";
@@ -89,19 +90,33 @@ function Sidebar() {
       </div>
       <div className="px-5 py-4 border-t border-edge text-[10px] text-faint leading-relaxed">
         Imagine. <span className="text-nexus-soft">Direct.</span> Build.<br />
-        <span className="text-mute">v0.2.1 — Live Preview</span>
+        <span className="text-mute">{useNexus.getState().demo ? "v0.9.0 — Web Demo" : "v0.9.0 — Live Preview"}</span>
       </div>
     </aside>
   );
 }
 
 function Topbar() {
-  const { status, connected } = useNexus();
+  const { status, connected, demo } = useNexus();
   return (
     <header className="h-12 shrink-0 border-b border-edge glass flex items-center gap-4 px-5 z-10">
       <div className="flex items-center gap-2 text-[12px]">
-        {connected ? <span className="live-dot" /> : <span className="w-2 h-2 rounded-full bg-bad" />}
-        <span className={connected ? "text-cyan-live font-semibold tracking-wide" : "text-bad"}>{connected ? "LIVE" : "OFFLINE"}</span>
+        {demo ? (
+          <>
+            <Globe size={12} className="text-warn" />
+            <span className="text-warn font-semibold tracking-wide">DEMO WEB</span>
+          </>
+        ) : connected ? (
+          <>
+            <span className="live-dot" />
+            <span className="text-cyan-live font-semibold tracking-wide">LIVE</span>
+          </>
+        ) : (
+          <>
+            <span className="w-2 h-2 rounded-full bg-bad" />
+            <span className="text-bad">OFFLINE</span>
+          </>
+        )}
       </div>
       <div className="flex-1" />
       {status && (
@@ -115,26 +130,52 @@ function Topbar() {
   );
 }
 
+function DemoBanner() {
+  const demo = useNexus((s) => s.demo);
+  if (!demo) return null;
+  return (
+    <div className="shrink-0 border-b border-warn/25 bg-warn/8 px-5 py-2 text-[12px] text-warn flex items-center gap-2">
+      <Globe size={12} className="shrink-0" />
+      <span>
+        Estúdio em <b>modo demo web</b> — snapshot <b>real</b> do projeto Hollow Echoes forjado pelo pipeline (DNA, tarefas, código, assets e preview jogável).
+        Para forjar seus próprios jogos,{" "}
+        <a href="../#download" className="underline hover:text-ink">baixe o aplicativo</a>.
+      </span>
+    </div>
+  );
+}
+
 export default function App() {
   const { connect, refreshStatus } = useNexus();
   const [booted, setBooted] = useState(false);
 
   useEffect(() => {
-    connect();
-    void refreshStatus();
-    const t = setInterval(() => void refreshStatus(), 15_000);
-    setBooted(true);
-    return () => clearInterval(t);
-  }, [connect, refreshStatus]);
+    let t: ReturnType<typeof setInterval> | undefined;
+    void (async () => {
+      const isDemo = await initDemo();
+      useNexus.setState({ demo: isDemo });
+      if (!isDemo) {
+        connect();
+        void refreshStatus();
+        t = setInterval(() => void refreshStatus(), 15_000);
+      } else {
+        void refreshStatus(); // served from the snapshot via fetch intercept
+      }
+      setBooted(true);
+    })();
+    return () => { if (t) clearInterval(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!booted) return <div className="h-full grid place-items-center text-mute kicker">booting nexus…</div>;
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="h-full flex nexus-bg">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0 relative">
           <Topbar />
+          <DemoBanner />
           <main className="flex-1 overflow-y-auto relative z-[1]">
             <Routes>
               <Route path="/" element={<Home />} />
@@ -149,7 +190,7 @@ export default function App() {
           </main>
         </div>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 void ChevronRight;

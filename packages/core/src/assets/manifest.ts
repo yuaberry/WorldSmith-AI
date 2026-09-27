@@ -62,10 +62,10 @@ const GENERATOR_MAP: Record<string, string> = {
   enemy: "spriteForge.paintCreature(3-frame squash)",
   boss: "spriteForge.paintBoss(3-frame hover)",
   npc: "spriteForge.paintNpc(2-frame sway)",
-  checkpoint: "spriteForge.paintCheckpoint(3-frame flame)",
-  pickup: "spriteForge.paintPickup(2-frame pulse)",
-  shard: "spriteForge.paintShard(4-frame pulse)",
-  glow: "spriteForge.paintGlow(3-frame beat)",
+  checkpoint: "propsPainters.paintCheckpointV2(3-frame flame, beveled basin, embers)",
+  pickup: "propsPainters.paintPickupV2(2-frame pulse, dithered halo, rune sparks)",
+  shard: "propsPainters.paintShardV2(4-frame pulse, facet planes, sparkle orbit)",
+  glow: "propsPainters.paintGlowV2(3-frame beat, dithered falloff)",
   sky: "spriteForge.paintSky(gradient+stars)",
 };
 

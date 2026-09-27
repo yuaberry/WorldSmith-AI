@@ -12,6 +12,7 @@
 import { zlibSync } from "fflate";
 import { paintHeroV2 } from "./heroPainter";
 import { paintCreatureV2, paintBossV2, paintNpcV2 } from "./creaturePainters";
+import { paintCheckpointV2, paintPickupV2, paintShardV2, paintGlowV2 } from "./propsPainters";
 
 // ── PNG encoder ──────────────────────────────────────────────────────────────
 
@@ -189,8 +190,12 @@ function _paintCreatureLegacy(pal: ForgePalette, size = 16, frame = 0): Uint8Arr
   return p.png();
 }
 
-/** Collectible shard (diamond gem with facets). */
-export function paintShard(pal: ForgePalette, size = 12, frame = 0): Uint8Array {
+/** Collectible shard (faceted gem) — propsPainters v2. */
+export function paintShard(pal: ForgePalette, _size = 12, frame = 0): Uint8Array {
+  return paintShardV2(frame, pal.accent, 12);
+}
+
+function _paintShardLegacy(pal: ForgePalette, size = 12, frame = 0): Uint8Array {
   const p = new Px(size, size);
   const gem = hexRGB(pal.accent);
   const lite = shade(gem, 1.35);
@@ -272,8 +277,12 @@ export function paintSky(pal: ForgePalette, w = 256, h = 144): Uint8Array {
   return p.png();
 }
 
-/** Radial glow sprite (VFX/particles). */
-export function paintGlow(pal: ForgePalette, size = 32, frame = 0): Uint8Array {
+/** Radial glow sprite (VFX/particles) — propsPainters v2 (dithered falloff). */
+export function paintGlow(pal: ForgePalette, _size = 32, frame = 0): Uint8Array {
+  return paintGlowV2(frame, pal.accent, 32);
+}
+
+function _paintGlowLegacy(pal: ForgePalette, size = 32, frame = 0): Uint8Array {
   const p = new Px(size, size);
   const c = hexRGB(pal.accent);
   const cx = size / 2;
@@ -339,8 +348,12 @@ function _paintNpcLegacy(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
   return p.png();
 }
 
-/** Checkpoint bonfire (16x16, 3-frame flame). */
-export function paintCheckpoint(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
+/** Checkpoint bonfire (16x16, 3-frame flame) — propsPainters v2. */
+export function paintCheckpoint(pal: ForgePalette, _size = 16, frame = 0): Uint8Array {
+  return paintCheckpointV2(frame, "#ff8c3a", "#5c6480", 16);
+}
+
+function _paintCheckpointLegacy(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
   const p = new Px(size, size);
   const stone: RGB = [88, 92, 110];
   const flame = [255, 150, 60];
@@ -355,8 +368,12 @@ export function paintCheckpoint(pal: ForgePalette, size = 16, frame = 0): Uint8A
   return p.png();
 }
 
-/** Ability pickup orb (14x14, 2-frame pulse). */
-export function paintPickup(pal: ForgePalette, size = 14, frame = 0): Uint8Array {
+/** Ability pickup orb (14x14, 2-frame pulse) — propsPainters v2. */
+export function paintPickup(pal: ForgePalette, _size = 14, frame = 0): Uint8Array {
+  return paintPickupV2(frame, pal.accent, 14);
+}
+
+function _paintPickupLegacy(pal: ForgePalette, size = 14, frame = 0): Uint8Array {
   const p = new Px(size, size);
   const core = hexRGB("#22d3ee");
   const halo = shade(core, 0.55);
