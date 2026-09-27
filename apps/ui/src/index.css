@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════
-   NEXUS FORGE — Design System v2
+   WORLDSMITH AI — Design System v2
    Dark-first · blueprint-engine feel · electric blue · cyan live
    ═══════════════════════════════════════════════════════════════ */
 @theme {
@@ -14,9 +14,9 @@
   --color-ink: #e9ecf5;
   --color-mute: #8d93a9;
   --color-faint: #565c74;
-  --color-nexus: #4f7cff;
-  --color-nexus-soft: #7fa0ff;
-  --color-nexus-deep: #3560e8;
+  --color-brand: #4f7cff;
+  --color-brand-soft: #7fa0ff;
+  --color-brand-deep: #3560e8;
   --color-cyan-live: #22d3ee;
   --color-violet: #a78bfa;
   --color-good: #34d399;
@@ -43,10 +43,10 @@ body {
 ::selection { background: rgba(79, 124, 255, 0.35); }
 
 /* ── Atmosphere: blueprint grid + aurora ─────────────────────── */
-.nexus-bg {
+.brand-bg {
   position: relative;
 }
-.nexus-bg::before {
+.brand-bg::before {
   content: "";
   position: fixed; inset: 0;
   background:
@@ -54,7 +54,7 @@ body {
     radial-gradient(800px 500px at -8% 115%, rgba(167, 139, 250, 0.10), transparent 60%);
   pointer-events: none; z-index: 0;
 }
-.nexus-bg::after {
+.brand-bg::after {
   content: "";
   position: fixed; inset: 0;
   background-image:
@@ -95,7 +95,7 @@ body {
 /* ── Typography ──────────────────────────────────────────────── */
 .kicker {
   font-size: 10.5px; font-weight: 700; letter-spacing: .34em;
-  color: var(--color-nexus-soft); text-transform: uppercase;
+  color: var(--color-brand-soft); text-transform: uppercase;
 }
 .stat-num { font-variant-numeric: tabular-nums; font-weight: 800; letter-spacing: -.02em; }
 
@@ -107,7 +107,7 @@ body {
   background: linear-gradient(180deg, var(--color-panel-3), var(--color-panel-2));
   cursor: pointer; transition: all .16s ease; user-select: none;
 }
-.btn:hover { border-color: var(--color-nexus); color: #fff; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(79, 124, 255, 0.22); }
+.btn:hover { border-color: var(--color-brand); color: #fff; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(79, 124, 255, 0.22); }
 .btn:active { transform: translateY(0) scale(.99); }
 .btn:disabled { opacity: .42; pointer-events: none; }
 .btn-primary {
@@ -128,7 +128,7 @@ body {
   color: var(--color-ink); font-size: 14px; outline: none;
   transition: border-color .15s, box-shadow .15s;
 }
-.input:focus { border-color: var(--color-nexus); box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.16); }
+.input:focus { border-color: var(--color-brand); box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.16); }
 textarea.input { resize: vertical; }
 
 .tag {
@@ -138,12 +138,12 @@ textarea.input { resize: vertical; }
 }
 
 /* ── Motion ──────────────────────────────────────────────────── */
-@keyframes nexus-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.85); } }
+@keyframes brand-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.85); } }
 .live-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--color-cyan-live);
   box-shadow: 0 0 14px var(--color-cyan-live);
-  animation: nexus-pulse 1.8s infinite;
+  animation: brand-pulse 1.8s infinite;
 }
 @keyframes slide-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .slide-in { animation: slide-in .24s ease; }

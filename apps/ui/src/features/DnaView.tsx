@@ -8,7 +8,7 @@ type DnaBundle = Record<string, Record<string, { value: unknown; origin: string;
 
 const ORIGIN_STYLE: Record<string, string> = {
   confirmed: "border-good/40 text-good bg-good/10",
-  inferred: "border-nexus/40 text-nexus-soft bg-nexus/10",
+  inferred: "border-brand/40 text-brand-soft bg-brand/10",
   unknown: "border-edge text-mute",
   requires_decision: "border-warn/40 text-warn bg-warn/10",
 };
@@ -40,7 +40,7 @@ export default function DnaView() {
         <div className="grid grid-cols-2 gap-4">
           {sections.map(([section, fields]) => (
             <div key={section} className="panel p-4">
-              <h2 className="text-[12px] font-bold tracking-[0.15em] text-nexus-soft mb-3 uppercase">{section}</h2>
+              <h2 className="text-[12px] font-bold tracking-[0.15em] text-brand-soft mb-3 uppercase">{section}</h2>
               <div className="space-y-3">
                 {Object.entries(fields).map(([key, f]) => (
                   <div key={key} className="border-l-2 border-edge pl-3">

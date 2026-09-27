@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nexus Forge — AI Autonomous Game Development Studio</title>
+<title>WorldSmith AI — AI Autonomous Game Development Studio</title>
 <meta name="description" content="Descreva um jogo. Agentes de IA planejam, programam em GDScript, validam no Godot de verdade e entregam o jogo completo — jogável, com kit Steam e .exe pronto para publicar.">
 <style>
 :root{
   --void:#08090d; --panel:#101218; --panel2:#161923; --edge:#22263a; --edge2:#2e3550;
   --ink:#e9ecf5; --mute:#8d93a9; --faint:#565c74;
-  --nexus:#4f7cff; --nexus2:#7fa0ff; --cyan:#22d3ee; --violet:#a78bfa; --good:#34d399;
+  --brand:#4f7cff; --brand2:#7fa0ff; --cyan:#22d3ee; --violet:#a78bfa; --good:#34d399;
   --mono:ui-monospace,"JetBrains Mono",monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -22,7 +22,7 @@ a{color:inherit;text-decoration:none}
 /* ── atmosphere ── */
 .bgfx{position:fixed;inset:0;z-index:0;pointer-events:none}
 .bgfx .aur{position:absolute;border-radius:50%;filter:blur(100px);opacity:.15}
-.bgfx .a1{width:640px;height:640px;background:var(--nexus);top:-220px;right:-160px;animation:drift 18s ease-in-out infinite alternate}
+.bgfx .a1{width:640px;height:640px;background:var(--brand);top:-220px;right:-160px;animation:drift 18s ease-in-out infinite alternate}
 .bgfx .a2{width:520px;height:520px;background:var(--violet);bottom:-200px;left:-180px;animation:drift 22s ease-in-out infinite alternate-reverse}
 .bgfx .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(79,124,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(79,124,255,.05) 1px,transparent 1px);background-size:46px 46px;mask-image:radial-gradient(ellipse 85% 70% at 50% 0%,#000 35%,transparent 90%)}
 @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(50px,70px) scale(1.18)}}
@@ -30,24 +30,24 @@ a{color:inherit;text-decoration:none}
 /* ── nav ── */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;gap:26px;padding:13px 30px;background:rgba(8,9,13,.7);backdrop-filter:blur(18px) saturate(1.4);border-bottom:1px solid var(--edge)}
 .logo{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:.13em;font-size:14.5px}
-.mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--nexus),var(--violet));display:grid;place-items:center;box-shadow:0 0 26px rgba(79,124,255,.55);animation:mark 3.6s ease-in-out infinite}
+.mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--brand),var(--violet));display:grid;place-items:center;box-shadow:0 0 26px rgba(79,124,255,.55);animation:mark 3.6s ease-in-out infinite}
 @keyframes mark{0%,100%{box-shadow:0 0 20px rgba(79,124,255,.4)}50%{box-shadow:0 0 42px rgba(79,124,255,.8)}}
 .mark svg{width:19px;height:19px}
 .nlinks{display:flex;gap:4px;margin-left:14px}
 .nlinks a{padding:8px 15px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--mute);transition:.18s}
 .nlinks a:hover{color:var(--ink);background:var(--panel2)}
 .gh{margin-left:auto;display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;border:1px solid var(--edge);background:var(--panel2);transition:.18s}
-.gh:hover{border-color:var(--nexus);transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,124,255,.25)}
+.gh:hover{border-color:var(--brand);transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,124,255,.25)}
 .gh svg{width:16px;height:16px}
 
 /* ── shared ── */
 section{position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:92px 26px}
-.kick{font-size:11px;letter-spacing:.34em;color:var(--nexus2);font-weight:700;text-transform:uppercase}
+.kick{font-size:11px;letter-spacing:.34em;color:var(--brand2);font-weight:700;text-transform:uppercase}
 h2{font-size:clamp(28px,4.4vw,42px);font-weight:850;letter-spacing:-.02em;line-height:1.08;margin:14px 0 10px}
 .sub{color:var(--mute);font-size:15.5px;max-width:660px;line-height:1.7}
 .grad{background:linear-gradient(92deg,#7fa0ff,#22d3ee 55%,#a78bfa 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 28px;border-radius:13px;font-weight:750;font-size:15px;transition:.2s;border:1px solid var(--edge2);color:var(--ink);background:linear-gradient(180deg,var(--panel2),var(--panel))}
-.btn:hover{transform:translateY(-2px);border-color:var(--nexus);box-shadow:0 10px 30px rgba(79,124,255,.3)}
+.btn:hover{transform:translateY(-2px);border-color:var(--brand);box-shadow:0 10px 30px rgba(79,124,255,.3)}
 .btn-p{background:linear-gradient(135deg,#5b86ff,#3560e8);border-color:rgba(255,255,255,.14);color:#fff;box-shadow:0 6px 26px rgba(79,124,255,.45),inset 0 1px 0 rgba(255,255,255,.22)}
 .btn-p:hover{box-shadow:0 12px 40px rgba(79,124,255,.6),inset 0 1px 0 rgba(255,255,255,.25)}
 .btn-c{background:linear-gradient(135deg,#22d3ee,#0ea5c4);border-color:rgba(255,255,255,.14);color:#04222b;box-shadow:0 6px 26px rgba(34,211,238,.35)}
@@ -82,7 +82,7 @@ h2{font-size:clamp(28px,4.4vw,42px);font-weight:850;letter-spacing:-.02em;line-h
 .f::before{content:"";position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,rgba(79,124,255,.5),transparent)}
 .f:hover{border-color:var(--edge2);transform:translateY(-4px);box-shadow:0 18px 50px rgba(0,0,0,.5)}
 .f .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;margin-bottom:16px;background:linear-gradient(135deg,rgba(79,124,255,.22),rgba(167,139,250,.22));border:1px solid rgba(79,124,255,.3)}
-.f .ic svg{width:19px;height:19px;stroke:var(--nexus2)}
+.f .ic svg{width:19px;height:19px;stroke:var(--brand2)}
 .f h3{font-size:15.5px;font-weight:800;margin-bottom:8px}
 .f p{color:var(--mute);font-size:13.5px;line-height:1.65}
 
@@ -121,7 +121,7 @@ footer b{color:var(--mute)}
 <div class="bgfx"><div class="aur a1"></div><div class="aur a2"></div><div class="grid"></div></div>
 
 <nav>
-  <a class="logo" href="#home"><span class="mark"><svg viewBox="0 0 128 128" fill="none"><path d="M64 22 106 64 64 106 22 64Z" stroke="#fff" stroke-width="12" stroke-linejoin="round"/><circle cx="64" cy="64" r="14" fill="#fff"/></svg></span>NEXUS&nbsp;FORGE</a>
+  <a class="logo" href="#home"><span class="mark"><svg viewBox="0 0 128 128" fill="none"><path d="M64 22 106 64 64 106 22 64Z" stroke="#fff" stroke-width="12" stroke-linejoin="round"/><circle cx="64" cy="64" r="14" fill="#fff"/></svg></span>WORLDSMITH&nbsp;AI</a>
   <div class="nlinks">
     <a href="#home">Início</a>
     <a href="studio/" style="color:var(--cyan,#22d3ee)">Estúdio Web</a>
@@ -137,11 +137,11 @@ footer b{color:var(--mute)}
 <section id="home">
   <div>
     <div class="kick" style="letter-spacing:.4em">AI AUTONOMOUS GAME DEVELOPMENT STUDIO</div>
-    <h1>NEXUS <span class="grad">FORGE</span></h1>
+    <h1>WORLDSMITH <span class="grad">AI</span></h1>
     <div class="type"><span id="ty"></span><span class="cur"></span></div>
     <p class="sub" style="margin:26px auto 0">Você descreve o jogo. Agentes de IA planejam o design, escrevem a documentação,
     programam em GDScript — e o jogo <b style="color:var(--ink)">roda dentro do estúdio</b>, com kit Steam completo e
-    executável <b style="color:var(--nexus2)">.exe</b> pronto para publicar.</p>
+    executável <b style="color:var(--brand2)">.exe</b> pronto para publicar.</p>
     <div class="cta">
       <a class="btn btn-c" href="#demo">▶ Jogar um jogo feito pela IA — agora</a>
       <a class="btn btn-p" href="studio/">🖥 Estúdio no navegador</a>
@@ -161,13 +161,13 @@ footer b{color:var(--mute)}
     <div class="kick" style="text-align:center">PROVA VIVA</div>
     <h2 style="text-align:center">Um jogo <span class="grad">gerado pela IA</span>, rodando no seu navegador</h2>
     <p class="sub" style="margin:0 auto;text-align:center">Isto não é um vídeo nem um mockup: é um jogo real forjado pelo pipeline
-    Nexus (Game DNA → scaffold Godot → validação headless), exportado para WebAssembly pelo próprio Godot 4.3.
+    WorldSmith AI (Game DNA → scaffold Godot → validação headless), exportado para WebAssembly pelo próprio Godot 4.3.
     Tem menu, áudio sintetizado, pausa e save de recorde. <b style="color:var(--ink)">Clique PLAY e jogue.</b></p>
   </div>
   <div class="demo-frame rv">
     <div class="demo-bar">
       <span class="dot" style="background:#f87171"></span><span class="dot" style="background:#fbbf24"></span><span class="dot" style="background:#34d399"></span>
-      <span class="t">AnimaDemo — forjado por agentes Nexus Forge</span>
+      <span class="t">AnimaDemo — forjado por agentes WorldSmith AI</span>
       <span class="live"><i></i>LIVE WASM</span>
     </div>
     <iframe src="demo/index.html" title="AnimaDemo — jogo gerado por IA" allow="autoplay; fullscreen; gamepad" loading="lazy"></iframe>
@@ -212,13 +212,13 @@ footer b{color:var(--mute)}
 <section id="download">
   <div class="rv">
     <div class="kick">DOWNLOAD</div>
-    <h2>Baixe o <span class="grad">Nexus Forge</span></h2>
+    <h2>Baixe o <span class="grad">WorldSmith AI</span></h2>
     <p class="sub">Executável standalone — sem instalação, sem dependências. Abra e o estúdio carrega no seu navegador.</p>
   </div>
   <div class="os">
     <div class="osc rv">
       <div class="os"><svg viewBox="0 0 24 24" fill="none" stroke="#7fa0ff" stroke-width="1.5"><path d="M3 5.5 11 4v7H3zM13 3.8 21 3v8h-8zM3 12.5 11 13.5V21l-8-1.1zM13 13.6 21 13.9V22l-8-1.2z"/></svg>Windows <span class="pill p-ok">PRONTO</span></div>
-      <p>Windows 10/11 x64. Baixe o <b>nexus-forge.exe</b>, dê dois cliques — o estúdio abre no navegador. O adapter baixa o Godot 4.3 oficial automaticamente.</p>
+      <p>Windows 10/11 x64. Baixe o <b>worldsmith-ai.exe</b>, dê dois cliques — o estúdio abre no navegador. O adapter baixa o Godot 4.3 oficial automaticamente.</p>
       <a class="get" href="https://github.com/yuaberry/nexus-forge/releases/latest" target="_blank" rel="noopener">Baixar .exe no GitHub</a>
     </div>
     <div class="osc rv">
@@ -238,7 +238,7 @@ footer b{color:var(--mute)}
   <div class="rv">
     <div class="kick">SOBRE O PROJETO</div>
     <h2>Status <span class="grad">real</span>, sem fingimento</h2>
-    <p class="sub">O Nexus Forge é desenvolvido como produto: toda capacidade listada foi testada; o que não existe ainda está claramente marcado.</p>
+    <p class="sub">O WorldSmith AI é desenvolvido como produto: toda capacidade listada foi testada; o que não existe ainda está claramente marcado.</p>
   </div>
   <div class="rv">
     <table>
@@ -260,7 +260,7 @@ footer b{color:var(--mute)}
 </section>
 
 <footer>
-  <b>NEXUS FORGE</b> — Imagine. Direct. Build. · Um projeto <b>Yua Devs</b> · MIT<br>
+  <b>WORLDSMITH AI</b> — Imagine. Direct. Build. · Um projeto <b>Yua Devs</b> · MIT<br>
   <span style="opacity:.65">Site estático e somente leitura — alterações apenas via pull request. O jogo acima roda 100% no seu navegador.</span>
 </footer>
 

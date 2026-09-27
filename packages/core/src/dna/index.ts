@@ -4,7 +4,7 @@
  * so the user always knows what the AI decided vs. what they said.
  * Agents must consult DNA before acting (enforced by agent context packs).
  */
-import type { DnaSection, DnaSectionData, Origin } from "@nexus/shared";
+import type { DnaSection, DnaSectionData, Origin } from "@worldsmith/shared";
 import { getDB } from "../db";
 import { now } from "../util";
 

@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import type { EventDto, StatusDto } from "./lib/api";
 
-interface NexusState {
+interface StudioState {
   ws: WebSocket | null;
   connected: boolean;
   demo: boolean;
@@ -13,7 +13,7 @@ interface NexusState {
   pushEvent: (e: EventDto) => void;
 }
 
-export const useNexus = create<NexusState>((set, get) => ({
+export const useStudio = create<StudioState>((set, get) => ({
   ws: null,
   connected: false,
   demo: false,

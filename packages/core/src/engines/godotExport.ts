@@ -10,6 +10,7 @@
  *
  * No fakes: every failure path returns an honest error.
  */
+import { dataRoot } from "../util";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { chmodSync, copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
@@ -21,7 +22,7 @@ import { bus as events } from "../events";
 const exec = promisify(execFile);
 
 const TPZ_URL = "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz";
-const STAGING = join(homedir(), ".nexusforge", "engines", "godot", "templates-dl");
+const STAGING = join(dataRoot(), "engines", "godot", "templates-dl");
 
 /** Where Godot looks for export templates on each OS. */
 export function templatesTargetDir(): string {

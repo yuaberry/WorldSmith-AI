@@ -7,6 +7,7 @@
  *
  * No fake images: if rendering is unavailable, the kit says so honestly.
  */
+import { dataRoot } from "../util";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { existsSync, mkdirSync, readdirSync, copyFileSync, rmSync } from "node:fs";
@@ -45,8 +46,8 @@ const StoreCopy = z.object({
 function fallbackCopy(p: ProjectRow, coreLoop: string, pillars: string[]): z.infer<typeof StoreCopy> {
   const name = p.name;
   return {
-    shortDescription: `${name}: ${coreLoop.slice(0, 200)} Um protótipo jogável forjado por agentes de IA no Nexus Forge.`,
-    longDescription: `# ${name}\n\n## Sobre o jogo\n${p.idea.slice(0, 600)}\n\n## O loop central\n${coreLoop}\n\n## Pilares de design\n${pillars.map((x) => `- ${x}`).join("\n")}\n\n## Sobre a tecnologia\n${name} foi planejado, programado e validado por uma equipe de agentes de IA no Nexus Forge — Game DNA persistente, código GDScript validado em engine real e preview jogável a cada ciclo.\n\n## Roadmap\nO protótipo atual é o slice vertical do Milestone 1. Os próximos marcos expandem os sistemas listados no DNA do jogo.\n`,
+    shortDescription: `${name}: ${coreLoop.slice(0, 200)} Um protótipo jogável forjado por agentes de IA no WorldSmith AI.`,
+    longDescription: `# ${name}\n\n## Sobre o jogo\n${p.idea.slice(0, 600)}\n\n## O loop central\n${coreLoop}\n\n## Pilares de design\n${pillars.map((x) => `- ${x}`).join("\n")}\n\n## Sobre a tecnologia\n${name} foi planejado, programado e validado por uma equipe de agentes de IA no WorldSmith AI — Game DNA persistente, código GDScript validado em engine real e preview jogável a cada ciclo.\n\n## Roadmap\nO protótipo atual é o slice vertical do Milestone 1. Os próximos marcos expandem os sistemas listados no DNA do jogo.\n`,
     tags: ["Action", "Indie", "Early Access", "Singleplayer", "Automation", "Simulation"],
     minRequirements: "OS: Windows 10 / Linux x64\nProcessador: dual-core 2.0 GHz\nMemória: 4 GB\nArmazenamento: 300 MB\nPlaca de vídeo: integrada (OpenGL 3.3)",
     recRequirements: "OS: Windows 11 / Linux x64\nProcessador: quad-core 2.5 GHz\nMemória: 8 GB\nArmazenamento: 500 MB\nPlaca de vídeo: dedicada (OpenGL 4)",
@@ -139,7 +140,7 @@ func _ready() -> void:
 	add_child(title)
 
 	var tag := Label.new()
-	tag.text = "FORGED BY NEXUS AI AGENTS"
+	tag.text = "FORGED BY WORLDSMITH AI AGENTS"
 	tag.add_theme_font_size_override("font_size", int(size.y * 0.045))
 	tag.add_theme_color_override("font_color", Color(0.47, 0.6, 1.0, 0.9))
 	tag.position = Vector2(size.x * 0.06, size.y * 0.62)
@@ -188,8 +189,8 @@ export async function generateStoreKit(p: ProjectRow, wsPath: string, godotBin: 
 
   // 1) store copy
   const { copy, usedLLM } = await generateStoreCopy(p);
-  const legal = `## Legal (templates — revise com um advogado antes de publicar)\n- **EULA**: por usar este software você aceita os termos do jogo "${p.name}" (template Nexus Forge; substitua pelo seu EULA final).\n- **Privacidade**: o jogo coleta ${"apenas dados locais (saves). Sem telemetria"}.\n- **Créditos**: Direção criativa: você · Engenharia & QA: agentes Nexus Forge (Nexus Forge Studio) · Engine: Godot 4.3 (MIT).\n`;
-  const md = `# ${p.name} — Steam Store Kit\n\n> Gerado pelo Nexus Forge${usedLLM ? " (designer agent + revisão humana recomendada)" : " (modo determinístico — sem LLM configurado)"}.\n\n## Elevator pitch\n${copy.elevatorPitch}\n\n## Descrição curta (≤ 300 chars)\n${copy.shortDescription}\n\n## Descrição longa\n${copy.longDescription}\n\n## Tags (Steam, EN)\n${copy.tags.join(", ")}\n\n## Requisitos — Mínimo\n\`\`\`\n${copy.minRequirements}\n\`\`\`\n\n## Requisitos — Recomendado\n\`\`\`\n${copy.recRequirements}\n\`\`\`\n\n${legal}\n## Assets gerados\nVeja \`images/\` (capsules/header em resoluções Steam) e \`screenshots/\` (capturas reais do jogo).\n`;
+  const legal = `## Legal (templates — revise com um advogado antes de publicar)\n- **EULA**: por usar este software você aceita os termos do jogo "${p.name}" (template WorldSmith AI; substitua pelo seu EULA final).\n- **Privacidade**: o jogo coleta ${"apenas dados locais (saves). Sem telemetria"}.\n- **Créditos**: Direção criativa: você · Engenharia & QA: agentes WorldSmith AI (WorldSmith AI Studio) · Engine: Godot 4.3 (MIT).\n`;
+  const md = `# ${p.name} — Steam Store Kit\n\n> Gerado pelo WorldSmith AI${usedLLM ? " (designer agent + revisão humana recomendada)" : " (modo determinístico — sem LLM configurado)"}.\n\n## Elevator pitch\n${copy.elevatorPitch}\n\n## Descrição curta (≤ 300 chars)\n${copy.shortDescription}\n\n## Descrição longa\n${copy.longDescription}\n\n## Tags (Steam, EN)\n${copy.tags.join(", ")}\n\n## Requisitos — Mínimo\n\`\`\`\n${copy.minRequirements}\n\`\`\`\n\n## Requisitos — Recomendado\n\`\`\`\n${copy.recRequirements}\n\`\`\`\n\n${legal}\n## Assets gerados\nVeja \`images/\` (capsules/header em resoluções Steam) e \`screenshots/\` (capturas reais do jogo).\n`;
   await Bun.write(join(kitDir, "store-description.md"), md);
 
   // 2) cover images at Steam sizes (rendered by the engine itself)
@@ -197,7 +198,7 @@ export async function generateStoreKit(p: ProjectRow, wsPath: string, godotBin: 
   wsSafeWrite(wsPath, "scripts/cover.gd", coverScript());
   const assets: StoreKitResult["assets"] = [];
   for (const s of STEAM_SIZES) {
-    const tmp = join(wsPath, ".nexusforge-tmp", s.id);
+    const tmp = join(wsPath, ".worldsmith-tmp", s.id);
     const png = await tryMovieRender(godotBin, wsPath, tmp, s.w, s.h, "res://scenes/cover.tscn", 2);
     const dest = join(imgDir, `${s.id}.png`);
     let rendered = false;
@@ -206,13 +207,13 @@ export async function generateStoreKit(p: ProjectRow, wsPath: string, godotBin: 
       rendered = true;
     }
     assets.push({ id: s.id, label: s.label, path: `docs/store-kit/images/${s.id}.png`, rendered });
-    rmSync(join(wsPath, ".nexusforge-tmp"), { recursive: true, force: true });
+    rmSync(join(wsPath, ".worldsmith-tmp"), { recursive: true, force: true });
   }
   const anyRendered = assets.some((a) => a.rendered);
   if (!anyRendered) notes.push("Cover rendering unavailable in this environment (no raster driver) — store-description.md is complete; generate capsules in the Godot editor via scenes/cover.tscn.");
 
   // 3) real screenshots of the game
-  const shotsTmp = join(wsPath, ".nexusforge-tmp", "shots");
+  const shotsTmp = join(wsPath, ".worldsmith-tmp", "shots");
   const shotPng = await tryMovieRender(godotBin, wsPath, shotsTmp, 1280, 720, "res://scenes/main.tscn", 48);
   const screenshots: string[] = [];
   if (shotPng) {
@@ -227,7 +228,7 @@ export async function generateStoreKit(p: ProjectRow, wsPath: string, godotBin: 
       copyFileSync(join(dir, shotFile), dest);
       screenshots.push(`docs/store-kit/screenshots/screenshot-${String(n + 1).padStart(2, "0")}.png`);
     }
-    rmSync(join(wsPath, ".nexusforge-tmp"), { recursive: true, force: true });
+    rmSync(join(wsPath, ".worldsmith-tmp"), { recursive: true, force: true });
   }
   if (screenshots.length === 0) notes.push("Screenshots unavailable here — capture via the Live Preview or the Godot editor if rendering is not supported headless on this machine.");
   else notes.push(`${screenshots.length} real screenshots captured from the running game.`);
@@ -236,9 +237,9 @@ export async function generateStoreKit(p: ProjectRow, wsPath: string, godotBin: 
     capsules: assets.filter((a) => a.rendered).length,
     totalCapsules: assets.length,
     screenshots: screenshots.length,
-    webPreview: existsSync(join(homedir(), ".nexusforge", "previews", p.slug, "index.html")),
-    winBuild: existsSync(join(homedir(), ".nexusforge", "builds", p.slug, `${p.slug}-win64.zip`)),
-    linuxBuild: existsSync(join(homedir(), ".nexusforge", "builds", p.slug, `${p.slug}-linux64.zip`)),
+    webPreview: existsSync(join(dataRoot(), "previews", p.slug, "index.html")),
+    winBuild: existsSync(join(dataRoot(), "builds", p.slug, `${p.slug}-win64.zip`)),
+    linuxBuild: existsSync(join(dataRoot(), "builds", p.slug, `${p.slug}-linux64.zip`)),
   });
 
   bus.emit({ projectId: p.id, agent: "store-kit", stage: "publish", level: "success", message: `Steam kit pronto: copy ${usedLLM ? "(LLM)" : "(deterministico)"}, ${assets.filter((a) => a.rendered).length}/${assets.length} capsules, ${screenshots.length} screenshots, guia de publicacao + legal + checklist.` });

@@ -38,7 +38,7 @@ class OpenRouterImageProvider implements ImageGenerationProvider {
       try {
         const res = await fetch(API, {
           method: "POST",
-          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Title": "Nexus Forge" },
+          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Title": "WorldSmith AI" },
           body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], modalities: ["image", "text"], max_tokens: maxTokens }),
           signal: AbortSignal.timeout(120_000),
         });
@@ -82,7 +82,7 @@ class OpenRouterVisionProvider implements VisionProvider {
       try {
         const res = await fetch(API, {
           method: "POST",
-          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Title": "Nexus Forge" },
+          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Title": "WorldSmith AI" },
           body: JSON.stringify({
             model,
             messages: [{
@@ -146,7 +146,7 @@ export async function runScreenshotQA(projectId: string, wsPath: string, godotBi
     bus.emit({ projectId, agent: "visual-qa", stage: "assets", level: "warning", message: "Screenshot QA pulado: sem provider de visão." });
     return { checked: false, reason: "no vision provider" };
   }
-  const tmp = join(wsPath, ".nexusforge-tmp", "qa-shots");
+  const tmp = join(wsPath, ".worldsmith-tmp", "qa-shots");
   try {
     mkdirSync(tmp, { recursive: true });
     const modes: string[][] = [["--headless"], []];
@@ -167,7 +167,7 @@ export async function runScreenshotQA(projectId: string, wsPath: string, godotBi
     const shot = new Uint8Array(await Bun.file(png).arrayBuffer());
     const instructions = `Você é QA visual de jogos. Screenshot REAL de um jogo ${bible.style}. Art Bible: iluminação — ${bible.lighting.philosophy}; contraste — ${bible.contrastRule}. Verifique: (1) elementos de gameplay legíveis contra o fundo; (2) UI sobreposta ou ilegível; (3) iluminacao incorreta/artefatos; (4) composicao com espaco vazio excessivo; (5) personagens fora de proporcao. Responda APENAS JSON: {"pass": true|false, "issues": ["curto"]}`;
     const r = await visionProvider.analyze(shot, instructions);
-    rmSync(join(wsPath, ".nexusforge-tmp"), { recursive: true, force: true });
+    rmSync(join(wsPath, ".worldsmith-tmp"), { recursive: true, force: true });
     if (!r.ok) {
       bus.emit({ projectId, agent: "visual-qa", stage: "assets", level: "warning", message: `Screenshot QA indisponível: ${(r.error ?? "").slice(0, 100)}` });
       return { checked: false, reason: r.error };

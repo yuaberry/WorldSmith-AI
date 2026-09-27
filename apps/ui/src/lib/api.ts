@@ -1,4 +1,4 @@
-/** Typed API client — talks to the Nexus Forge core on the same origin. */
+/** Typed API client — talks to the WorldSmith AI core on the same origin. */
 
 export interface EngineStatusDto {
   engine: string;

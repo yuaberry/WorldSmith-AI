@@ -153,7 +153,7 @@ func _refresh_menu() -> void:
 		rows_box.add_child(_make_button("QUIT TO DESKTOP"))
 	rows_box.add_child(_make_settings_row())
 	var credits := Label.new()
-	credits.text = "Nexus Forge build · ${spec.flavor} slice"
+	credits.text = "WorldSmith AI build · ${spec.flavor} slice"
 	credits.add_theme_font_size_override("font_size", 11)
 	credits.add_theme_color_override("font_color", Color("#4a4f66"))
 	credits.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -264,7 +264,7 @@ func _apply_saved_settings() -> void:
  *  each template's game_state.gd via marker injection). */
 export function gameStateProPatch(): string {
   return `
-# ---- professional kit (Nexus): SFX + best-run persistence ----
+# ---- professional kit (WorldSmith): SFX + best-run persistence ----
 # Runtime texture loader: loads raw PNGs WITHOUT needing the editor import
 # step (works headless, in editor and in exports — deterministic).
 var _tex_cache := {}

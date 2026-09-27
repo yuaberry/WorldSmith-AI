@@ -1,10 +1,11 @@
 /**
- * Nexus Forge server — Bun.serve HTTP + WebSocket, local-only (127.0.0.1).
+ * WorldSmith AI server — Bun.serve HTTP + WebSocket, local-only (127.0.0.1).
  * Serves the REST API, the live event stream (WS) and the built UI (static).
  */
+import { dataRoot } from "./util";
 import { join, dirname } from "node:path";
 import { existsSync, readFileSync, readdirSync, mkdirSync, writeFileSync } from "node:fs";
-import type { ForgeStage, GameBrief } from "@nexus/shared";
+import type { ForgeStage, GameBrief } from "@worldsmith/shared";
 import { bus } from "./events";
 import { bus as eventBus } from "./events";
 import { getDB } from "./db";
@@ -28,7 +29,7 @@ import { rethemeAssets } from "./assets/retheme";
 import { buildExecutable, listBuilds, buildsDir } from "./publish/builds";
 import { Godot4Adapter } from "./engines/godot";
 import { join as pathJoin } from "node:path";
-import { homedir } from "node:os";
+
 
 const PORT = Number(getSetting("server.port", 5180));
 const UI_DIST = join(import.meta.dir, "..", "..", "..", "apps", "ui", "dist");
@@ -52,8 +53,8 @@ async function handleApi(req: Request, path: string, url: URL): Promise<Response
   if (req.method === "GET" && path === "/api/status") {
     const engines = await detectEngines();
     return json({
-      app: "Nexus Forge",
-      version: "0.1.0",
+      app: "WorldSmith AI",
+      version: "0.10.0",
       aiConfigured: aiConfigured(),
       engines,
       uiBuilt: existsSync(join(UI_DIST, "index.html")),
@@ -232,7 +233,7 @@ async function handleApi(req: Request, path: string, url: URL): Promise<Response
       if (!templatesInstalled()) {
         return json({ ok: false, error: "Export templates not installed — click 'Install templates' first (one-time, ~1GB official download).", templatesMissing: true }, 400);
       }
-      const outDir = pathJoin(homedir(), ".nexusforge", "previews", p.slug);
+      const outDir = pathJoin(dataRoot(), "previews", p.slug);
       const bin = det.path;
       const projPath = p.data_path;
       const projId = p.id;
@@ -249,7 +250,7 @@ async function handleApi(req: Request, path: string, url: URL): Promise<Response
       return json({ started: true });
     }
     if (req.method === "GET" && parts[3] === "preview-status") {
-    const outDir = pathJoin(homedir(), ".nexusforge", "previews", p.slug);
+    const outDir = pathJoin(dataRoot(), "previews", p.slug);
     let ready = false;
     try {
       ready = existsSync(pathJoin(outDir, "index.html")) && readdirSync(outDir).some((f) => f.endsWith(".wasm"));
@@ -431,7 +432,7 @@ async function handleApi(req: Request, path: string, url: URL): Promise<Response
       return json({ started: true, platform });
     }
     if (req.method === "GET" && parts[3] === "preview-status") {
-      const outDir = pathJoin(homedir(), ".nexusforge", "previews", p.slug);
+      const outDir = pathJoin(dataRoot(), "previews", p.slug);
       let ready = false;
       try {
         ready = existsSync(pathJoin(outDir, "index.html")) && readdirSync(outDir).some((f) => f.endsWith(".wasm"));
@@ -537,12 +538,12 @@ export async function startServer(): Promise<void> {
         return json({ error: "build not found" }, 404);
       }
 
-      // LIVE PREVIEW static route: /preview/<slug>/<file> → ~/.nexusforge/previews/<slug>/
+      // LIVE PREVIEW static route: /preview/<slug>/<file> → ~/.worldsmith/previews/<slug>/
       const pm = path.match(/^\/preview\/([\w-]+)\/(.*)$/);
       if (pm) {
         const slug = pm[1]!.replace(/[^\w-]/g, "");
         const rel = pm[2]!.replace(/\.{2,}/g, "").replace(/^\/+/, "");
-        const base = pathJoin(homedir(), ".nexusforge", "previews", slug);
+        const base = pathJoin(dataRoot(), "previews", slug);
         const abs = pathJoin(base, rel || "index.html");
         if (abs.startsWith(base) && existsSync(abs)) {
           const ext = rel.slice(rel.lastIndexOf(".") + 1);
@@ -575,9 +576,9 @@ export async function startServer(): Promise<void> {
         const index = serveStatic("/");
         if (index) return index; // SPA fallback
         return new Response(
-          `<!doctype html><meta charset="utf-8"><title>Nexus Forge</title>
+          `<!doctype html><meta charset="utf-8"><title>WorldSmith AI</title>
            <body style="background:#0a0b10;color:#e8eaf2;font-family:system-ui;display:grid;place-items:center;height:100vh">
-           <div style="text-align:center"><h1>NEXUS FORGE</h1>
+           <div style="text-align:center"><h1>WORLDSMITH AI</h1>
            <p>API is running on port ${PORT}. UI not built yet — run <code style="color:#4f7cff">pnpm ui:build</code>.</p></div></body>`,
           { headers: { "content-type": "text/html; charset=utf-8" } },
         );
@@ -601,9 +602,9 @@ export async function startServer(): Promise<void> {
       message(_ws, _msg) { /* client → server messages not needed for MVP */ },
     },
   });
-  console.log(`[nexus-forge] server on http://127.0.0.1:${PORT}  (UI: ${existsSync(join(UI_DIST, "index.html")) || Object.keys(UI_EMBED).length > 0 ? "ready" : "not built"})`);
+  console.log(`[worldsmith-ai] server on http://127.0.0.1:${PORT}  (UI: ${existsSync(join(UI_DIST, "index.html")) || Object.keys(UI_EMBED).length > 0 ? "ready" : "not built"})`);
   // Professional app feel: open the studio in the default browser
-  if (!process.env.NEXUS_NO_OPEN) {
+  if (!process.env.WORLDSMITH_NO_OPEN && !process.env.NEXUS_NO_OPEN) {
     const url = `http://127.0.0.1:${PORT}`;
     try {
       const { spawn } = await import("node:child_process");

@@ -3,8 +3,8 @@
  *
  * SECURITY MODEL (MVP, honest):
  * - API keys are NEVER stored in the repo or in plaintext DB.
- * - Stored in ~/.nexusforge/secrets.enc, AES-256-GCM encrypted with a key
- *   derived (scrypt) from a machine-bound file ~/.nexusforge/machine.key
+ * - Stored in ~/.worldsmith/secrets.enc, AES-256-GCM encrypted with a key
+ *   derived (scrypt) from a machine-bound file ~/.worldsmith/machine.key
  *   (created with 0600 perms on first run).
  * - Limitation (documented in docs/STATUS.md): OS keyring integration lands
  *   with the Tauri shell (keyring crate). For now this is encrypted-at-rest.

@@ -1,6 +1,6 @@
 /**
  * Release builder — turns the whole studio into standalone executables:
- *   nexus-forge.exe (Windows x64) · nexus-forge (Linux x64) · nexus-forge-macos
+ *   worldsmith-ai.exe (Windows x64) · worldsmith-ai (Linux x64) · worldsmith-ai-macos
  *
  * Steps: build UI → embed it as base64 → bun --compile per target.
  * Bun's standalone executables embed the runtime, so users just double-click.
@@ -36,9 +36,9 @@ if (existsSync(join(UI_DIST, "index.html"))) {
 
 // 2) compile per target
 const TARGETS: Array<[string, string, string]> = [
-  ["bun-windows-x64", "nexus-forge.exe", "Windows x64"],
-  ["bun-linux-x64", "nexus-forge", "Linux x64"],
-  ["bun-darwin-arm64", "nexus-forge-macos", "macOS Apple Silicon"],
+  ["bun-windows-x64", "worldsmith-ai.exe", "Windows x64"],
+  ["bun-linux-x64", "worldsmith-ai", "Linux x64"],
+  ["bun-darwin-arm64", "worldsmith-ai-macos", "macOS Apple Silicon"],
 ];
 
 for (const [target, out, label] of TARGETS) {

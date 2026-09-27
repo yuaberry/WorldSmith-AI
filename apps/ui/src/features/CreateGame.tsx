@@ -128,7 +128,7 @@ export default function CreateGame() {
               <button
                 key={p}
                 onClick={() => togglePlatform(p)}
-                className={`tag uppercase cursor-pointer transition-colors ${platforms.includes(p) ? "border-nexus text-nexus-soft bg-nexus/10" : ""}`}
+                className={`tag uppercase cursor-pointer transition-colors ${platforms.includes(p) ? "border-brand text-brand-soft bg-brand/10" : ""}`}
               >
                 {p}
               </button>

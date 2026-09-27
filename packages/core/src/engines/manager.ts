@@ -1,8 +1,8 @@
 /**
  * Engine Manager — adapter registry, detection and managed downloads.
- * The Nexus NEVER pretends an engine exists: status reflects reality.
+ * WorldSmith NEVER pretends an engine exists: status reflects reality.
  */
-import type { EngineId } from "@nexus/shared";
+import type { EngineId } from "@worldsmith/shared";
 import type { EngineAdapter } from "./types";
 import { Godot4Adapter, downloadGodot, managedGodotPath } from "./godot";
 import { Unreal5Adapter } from "./unreal";

@@ -3,10 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Search } from "lucide-react";
 import { api, type EventDto } from "../lib/api";
-import { useNexus } from "../store";
+import { useStudio } from "../store";
 
 const LEVEL_COLOR: Record<string, string> = {
-  info: "text-nexus-soft",
+  info: "text-brand-soft",
   success: "text-good",
   warning: "text-warn",
   error: "text-bad",
@@ -15,7 +15,7 @@ const LEVEL_COLOR: Record<string, string> = {
 export default function LogsView() {
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
-  const { events } = useNexus();
+  const { events } = useStudio();
   const [initial, setInitial] = useState<EventDto[]>([]);
   const [q, setQ] = useState("");
 

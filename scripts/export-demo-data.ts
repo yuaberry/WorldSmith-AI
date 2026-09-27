@@ -14,11 +14,11 @@ import { existsSync, readdirSync, statSync, readFileSync, mkdirSync, writeFileSy
 import { join, relative } from "node:path";
 import { homedir } from "node:os";
 
-const ROOT = homedir() + "/.nexusforge";
+const ROOT = homedir() + "/.worldsmith";
 const SLUG = process.argv[2] ?? "hollow-echoes";
 const OUT = new URL("../apps/ui/public/demo-data.json", import.meta.url).pathname;
 
-const db = new Database(join(ROOT, "nexus.db"), { readonly: true });
+const db = new Database(join(ROOT, "worldsmith.db"), { readonly: true });
 const proj = db.query("SELECT * FROM projects WHERE slug = ?").get(SLUG) as Record<string, unknown> | null;
 if (!proj) { console.error(`project ${SLUG} not found`); process.exit(1); }
 const pid = proj.id as string;
@@ -42,7 +42,7 @@ for (const r of dnaRows) {
 
 // ── file tree (walk, capped) ─────────────────────────────────────────────────
 const tree: Array<{ path: string; type: "file" | "dir" }> = [];
-const skip = new Set([".git", ".godot", ".nexusforge-tmp", "node_modules"]);
+const skip = new Set([".git", ".godot", ".worldsmith-tmp", "node_modules"]);
 (function walk(dir: string, depth = 0) {
   if (tree.length >= 700 || depth > 6) return;
   let entries: string[] = [];
@@ -119,8 +119,8 @@ function storeKitCounts(): { images: number; screenshots: number } {
 
 // ── status DTO (honest: no backend on the web demo) ──────────────────────────
 const status = {
-  app: "Nexus Forge",
-  version: "0.9.0",
+  app: "WorldSmith AI",
+  version: "0.10.0",
   aiConfigured: false, // honest: the static demo cannot call providers
   uiBuilt: true,
   engines: [

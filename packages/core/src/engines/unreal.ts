@@ -67,7 +67,7 @@ export class Unreal5Adapter implements EngineAdapter {
       ["Config/DefaultEngine.ini"]: this.defaultEngineIni(Game),
       ["Config/DefaultGame.ini"]: `[ProjectSettings]\nProjectName=${Game}\nDescription=${spec.shortDescription.replace(/\n/g, " ")}\n`,
       [".gitignore"]: this.ueIgnore(),
-      ["docs/README.md"]: `# ${spec.title}\n\n${spec.shortDescription}\n\nScaffolded by Nexus Forge (Unreal Engine 5 C++ project).\n\n## Next steps\n1. Open ${Game}.uproject in UE5 (right-click → Generate project files first on Windows).\n2. If asked to rebuild, accept (compiles the Source module).\n3. The ${Game}GameModeBase is set as default GameMode.\n\n> NOTE: full code generation for UE5 (systems, components) is Phase 3 of the\n> roadmap — the Nexus currently scaffolds the real project structure and\n> compiles via UnrealBuildTool when the engine is available.\n`,
+      ["docs/README.md"]: `# ${spec.title}\n\n${spec.shortDescription}\n\nScaffolded by WorldSmith AI (Unreal Engine 5 C++ project).\n\n## Next steps\n1. Open ${Game}.uproject in UE5 (right-click → Generate project files first on Windows).\n2. If asked to rebuild, accept (compiles the Source module).\n3. The ${Game}GameModeBase is set as default GameMode.\n\n> NOTE: full code generation for UE5 (systems, components) is Phase 3 of the\n> roadmap — the Nexus currently scaffolds the real project structure and\n> compiles via UnrealBuildTool when the engine is available.\n`,
     };
     for (const [rel, content] of Object.entries(files)) {
       const abs = join(wsPath, rel);
@@ -140,7 +140,7 @@ public class ${Game} : ModuleRules
 
 /**
  * Default game mode for ${spec.title}.
- * Nexus Forge scaffold — attach core systems here in the build-out phase.
+ * WorldSmith AI scaffold — attach core systems here in the build-out phase.
  */
 UCLASS()
 class ${Game.toUpperCase()}_API A${Game}GameModeBase : public AGameModeBase

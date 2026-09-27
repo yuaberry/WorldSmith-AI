@@ -2,7 +2,7 @@
  * Event bus: persists every event and broadcasts to subscribed WS clients.
  * Single source of truth for the Activity Feed and Log Center.
  */
-import type { ForgeEvent } from "@nexus/shared";
+import type { ForgeEvent } from "@worldsmith/shared";
 import { getDB } from "./db";
 
 type EmitPayload = Partial<Omit<ForgeEvent, "id" | "ts" | "message" | "level">> &

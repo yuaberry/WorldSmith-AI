@@ -1,7 +1,7 @@
 <div align="center">
 
 
-# ⚡ NEXUS FORGE
+# ⚡ WORLDSMITH AI
 
 ### AI Autonomous Game Development Studio
 
@@ -23,7 +23,7 @@ Você escreve:
 > necessidades, agricultura, relações sociais, progressão tecnológica e
 > mundo procedural."*
 
-E o Nexus Forge executa, de ponta a ponta:
+E o WorldSmith AI executa, de ponta a ponta:
 
 ```
 IDEIA → INTENT → GAME DNA → GDD → ARQUITETURA → SCAFFOLD GODOT
@@ -58,7 +58,7 @@ cd nexus-forge
 # http://127.0.0.1:5180
 ```
 
-Sem chave de API o Nexus roda em **modo determinístico** (templates reais de
+Sem chave de API o WorldSmith roda em **modo determinístico** (templates reais de
 jogos jogáveis). Com uma chave **OpenRouter** (importada em Settings →
 armazenada cifrada em AES-256-GCM fora do repositório), os agentes LLM ganham
 o comando: planejamento autoral, codegen de sistemas e loop de correção.
@@ -74,7 +74,7 @@ bun run packages/core/src/main.ts detect                       # status das engi
 ## Arquitetura
 
 ```
-nexus-forge/
+worldsmith-ai/
 ├── apps/
 │   ├── ui/                  # React 18 + Vite + Tailwind v4 (dark-first)
 │   └── desktop/             # (fase 2) shell Tauri
@@ -107,7 +107,7 @@ nexus-forge/
   juiz de "funciona ou não". Nada de sucesso fingido: se o smoke-run reprova,
   a task bloqueia com o erro exato.
 - **Zero segredos no repo** — a chave OpenRouter vive cifrada em
-  `~/.nexusforge/secrets.enc` (AES-256-GCM, chave derivada por scrypt de um
+  `~/.worldsmith/secrets.enc` (AES-256-GCM, chave derivada por scrypt de um
   arquivo de máquina com permissão 0600).
 - **Provider-agnóstico** — a interface `AIProvider` já isola OpenRouter;
   Ollama/OpenAI-compat entram sem tocar no pipeline.

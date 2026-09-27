@@ -1,4 +1,4 @@
-/** Shared contract types for the Nexus Forge. Used by core service and UI. */
+/** Shared contract types for WorldSmith AI. Used by core service and UI. */
 import { z } from "zod";
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /**
- * Nexus Forge entrypoint.
+ * WorldSmith AI entrypoint.
  *
  *   bun run src/main.ts                 → start the studio server (default)
  *   bun run src/main.ts detect          → print engine detection report
@@ -9,7 +9,7 @@
 import { detectEngines, ensureGodot } from "./engines/manager";
 import { startServer } from "./server";
 import { forge, forgeNew } from "./pipeline/forge";
-import type { Dimension, EngineId, PlatformId, QualityTier } from "@nexus/shared";
+import type { Dimension, EngineId, PlatformId, QualityTier } from "@worldsmith/shared";
 
 const args = process.argv.slice(2);
 const cmd = args[0] ?? "serve";
@@ -26,7 +26,7 @@ switch (cmd) {
   }
   case "detect": {
     const engines = await detectEngines();
-    console.log("=== Nexus Forge — Engine Detection ===");
+    console.log("=== WorldSmith AI — Engine Detection ===");
     for (const e of engines) {
       console.log(`${e.installed ? "✔" : "✖"} ${e.label} ${e.version ?? ""} ${e.installed ? `(at ${e.path})` : "— " + e.note}`);
     }

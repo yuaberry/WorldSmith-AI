@@ -6,9 +6,9 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 const exec = promisify(execFile);
 
-const ws = join(homedir(), ".nexusforge/projects/hollow-echoes");
-const godot = join(homedir(), ".nexusforge/engines/godot/godot");
-const tmp = join(ws, ".nexusforge-tmp/qa-test");
+const ws = join(homedir(), ".worldsmith/projects/hollow-echoes");
+const godot = join(homedir(), ".worldsmith/engines/godot/godot");
+const tmp = join(ws, ".worldsmith-tmp/qa-test");
 rmSync(tmp, { recursive: true, force: true });
 mkdirSync(tmp, { recursive: true });
 

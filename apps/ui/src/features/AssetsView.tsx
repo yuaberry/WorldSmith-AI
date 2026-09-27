@@ -124,7 +124,7 @@ export default function AssetsView() {
       </div>
 
       <div className="panel p-4 text-[12px] text-mute leading-relaxed">
-        <Sparkles size={13} className="inline mr-1 text-nexus-soft" />
+        <Sparkles size={13} className="inline mr-1 text-brand-soft" />
         Os sprites do jogo carregam de <code className="text-cyan-live">assets/sprites/</code> em tempo real (sem import).
         Gerou algo bonito com IA? Um clique em <b className="text-ink">▶ Live Preview</b> reexporta o jogo e o novo arte aparece.
         Os templates 2D usam esses slots; o estilo procedural usa a paleta do Game DNA.

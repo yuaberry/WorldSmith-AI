@@ -38,7 +38,7 @@ export default function CodeView() {
             <button
               key={f.path}
               onClick={() => f.type === "file" && void open(f.path)}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] hover:bg-panel-2 text-left ${current?.path === f.path ? "bg-nexus/15 text-nexus-soft" : "text-mute"}`}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] hover:bg-panel-2 text-left ${current?.path === f.path ? "bg-brand/15 text-brand-soft" : "text-mute"}`}
             >
               {f.type === "dir" ? <Folder size={13} className="shrink-0" /> : <File size={13} className="shrink-0" />}
               <span className="truncate font-mono">{f.path}</span>
@@ -48,7 +48,7 @@ export default function CodeView() {
         <div className="panel p-0 overflow-hidden min-h-0 flex flex-col">
           {current ? (
             <>
-              <div className="px-4 py-2.5 border-b border-edge text-[12px] font-mono text-nexus-soft shrink-0">
+              <div className="px-4 py-2.5 border-b border-edge text-[12px] font-mono text-brand-soft shrink-0">
                 {current.path}
               </div>
               <pre className="flex-1 overflow-auto p-4 text-[12px] leading-relaxed font-mono text-ink/90 whitespace-pre">

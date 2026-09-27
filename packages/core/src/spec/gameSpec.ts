@@ -245,6 +245,6 @@ ${systemsTable.map(([label, active]) => `| ${label} | ${on(active)} |`).join("\n
 - Esquema: ${spec.controls.scheme} · Ações: ${spec.controls.actions.join(", ")}
 
 ---
-*Gerado pelo Nexus Forge · fonte de verdade: data/spec.json*
+*Gerado pelo WorldSmith AI · fonte de verdade: data/spec.json*
 `;
 }

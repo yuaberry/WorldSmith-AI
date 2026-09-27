@@ -1,4 +1,4 @@
-# Nexus Forge — Status Real (v0.9.0)
+# WorldSmith AI — Status Real (v0.10.0)
 
 > Regra da casa: nada de "Coming Soon" falso. Este documento distingue
 > **verificado por teste**, **implementado sem teste** e **arquitetura pronta**.

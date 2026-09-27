@@ -117,7 +117,7 @@ export async function aiSprite(slot: SpriteSlot, gameTitle: string, idea: string
       headers: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
-        "X-Title": "Nexus Forge",
+        "X-Title": "WorldSmith AI",
       },
       body: JSON.stringify({
         model,

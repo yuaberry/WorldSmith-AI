@@ -3,10 +3,11 @@
  * Windows .exe and Linux binaries with embedded PCK, zipped for distribution
  * (ready for Steam Direct depots, itch.io or any launcher).
  */
+import { dataRoot } from "../util";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
-import { homedir } from "node:os";
+
 import { join } from "node:path";
 import { zipSync } from "fflate";
 import { bus } from "../events";
@@ -129,7 +130,7 @@ export interface BuildResult {
 }
 
 export function buildsDir(slug: string): string {
-  return join(homedir(), ".nexusforge", "builds", slug);
+  return join(dataRoot(), "builds", slug);
 }
 
 export function listBuilds(slug: string): Array<{ name: string; size: number }> {
@@ -166,7 +167,7 @@ export async function buildExecutable(p: ProjectRow, wsPath: string, godotBin: s
     }
     // zip for distribution (single executable with embedded PCK + readme)
     const bin = new Uint8Array(await Bun.file(outPath).arrayBuffer());
-    const readme = `# ${p.name}\n\nExecutavel gerado pelo Nexus Forge (Godot 4.3, PCK embutido).\nExecute ${outName} — sem instalador.\n\nEngine: Godot 4.3 (MIT). Direcao criativa: voce. Engenharia: agentes Nexus Forge.\n`;
+    const readme = `# ${p.name}\n\nExecutavel gerado pelo WorldSmith AI (Godot 4.3, PCK embutido).\nExecute ${outName} — sem instalador.\n\nEngine: Godot 4.3 (MIT). Direcao criativa: voce. Engenharia: agentes WorldSmith AI.\n`;
     const zipped = zipSync({ [outName]: bin, "README.txt": new TextEncoder().encode(readme) }, { level: 6 });
     const outRoot = buildsDir(p.slug);
     mkdirSync(outRoot, { recursive: true });

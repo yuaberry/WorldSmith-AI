@@ -2,10 +2,10 @@
 import { useEffect, useState } from "react";
 import { KeyRound, Trash2, Download, Cpu, ShieldCheck, AlertTriangle } from "lucide-react";
 import { api } from "../lib/api";
-import { useNexus } from "../store";
+import { useStudio } from "../store";
 
 export default function SettingsView() {
-  const { refreshStatus } = useNexus();
+  const { refreshStatus } = useStudio();
   const [cred, setCred] = useState<{ configured: boolean; hint: string | null }>({ configured: false, hint: null });
   const [keyInput, setKeyInput] = useState("");
   const [pathInput, setPathInput] = useState("");
@@ -73,11 +73,11 @@ export default function SettingsView() {
       {/* AI provider */}
       <section className="panel p-5">
         <h2 className="text-sm font-bold tracking-wide flex items-center gap-2">
-          <Cpu size={15} className="text-nexus" /> AI PROVIDER — OPENROUTER
+          <Cpu size={15} className="text-brand" /> AI PROVIDER — OPENROUTER
         </h2>
         <p className="text-[12px] text-mute mt-1.5 leading-relaxed">
           A chave é armazenada criptografada (AES-256-GCM, chave derivada da máquina) em
-          ~/.nexusforge — nunca em texto plano, nunca no repositório. Sem chave, o Nexus roda em
+          ~/.worldsmith — nunca em texto plano, nunca no repositório. Sem chave, o WorldSmith roda em
           modo determinístico (templates reais, sem LLM).
         </p>
         <div className="mt-4 space-y-3">
@@ -104,7 +104,7 @@ export default function SettingsView() {
           <Download size={15} className="text-cyan-live" /> ENGINE
         </h2>
         <p className="text-[12px] text-mute mt-1.5">
-          O Nexus baixa o binário oficial do Godot 4.3 (GitHub Releases) para ~/.nexusforge/engines
+          O WorldSmith baixa o binário oficial do Godot 4.3 (GitHub Releases) para ~/.worldsmith/engines
           quando necessário — usado para gerar, validar e rodar os jogos localmente.
         </p>
         <button className="btn mt-3" onClick={installGodot} disabled={godotBusy}>

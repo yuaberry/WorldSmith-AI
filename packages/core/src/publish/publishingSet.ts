@@ -23,7 +23,7 @@ export async function writePublishingSet(
 
   await Bun.write(join(kitDir, "publish-guide.md"), `# Como publicar ${name} na Steam — guia passo a passo
 
-> Gerado pelo Nexus Forge. Os ativos referenciados estao neste kit e na pasta do projeto.
+> Gerado pelo WorldSmith AI. Os ativos referenciados estao neste kit e na pasta do projeto.
 
 ## 1. Conta Steamworks (Steam Direct)
 1. Crie a conta em https://partner.steamgames.com e pague a taxa unica de US$ 100 por aplicativo.
@@ -52,7 +52,7 @@ export async function writePublishingSet(
 ## 4. Builds (Depots)
 1. Crie depots Windows e Linux no Steamworks.
 2. Instale o SteamCMD e siga o wizard de upload.
-3. Binarios standalone: ~/.nexusforge/builds/${p.slug}/ (PCK embutido, sem instalador).
+3. Binarios standalone: ~/.worldsmith/builds/${p.slug}/ (PCK embutido, sem instalador).
 4. Launch options apontando o executavel principal.
 
 ## 5. Revisao e pagamento
@@ -65,7 +65,7 @@ O mesmo zip funciona no itch.io com upload direto.
 
   await Bun.write(join(kitDir, "press-release.md"), `# Press Release — ${name}
 
-${new Date().toLocaleDateString("pt-BR")} — ${name} entra em acesso antecipado: um jogo planejado, programado e validado por agentes de IA no Nexus Forge, com direcao criativa humana.
+${new Date().toLocaleDateString("pt-BR")} — ${name} entra em acesso antecipado: um jogo planejado, programado e validado por agentes de IA no WorldSmith AI, com direcao criativa humana.
 
 ## Pitch
 ${copy.elevatorPitch}
@@ -127,11 +127,11 @@ ${copy.recRequirements}
 [SEU NOME] — Creative Director
 
 ## Engenharia & QA
-Agentes Nexus Forge — planejamento, programacao (GDScript) e validacao headless
+Agentes WorldSmith AI — planejamento, programacao (GDScript) e validacao headless
 
 ## Tecnologia
 - Godot Engine 4.3 — (c) Godot Engine contributors, licenca MIT
-- Sprites e audio procedurais: Nexus Sprite Forge
+- Sprites e audio procedurais: WorldSmith Sprite Forge
 - Arte por IA (quando aplicavel): modelos de imagem via OpenRouter
 `);
 

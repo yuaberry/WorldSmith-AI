@@ -6,6 +6,7 @@
  *    error capture (this is the error-reduction loop of the platform)
  *  - openEditor() spawns the actual editor
  */
+import { dataRoot } from "../util";
 import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { chmodSync, existsSync, mkdirSync } from "node:fs";
@@ -21,10 +22,10 @@ import { metroidvaniaFiles } from "./templates/godot_metroidvania";
 
 const exec = promisify(execFile);
 
-/** Managed install location (engines downloaded by Nexus Forge itself). */
+/** Managed install location (engines downloaded by WorldSmith AI itself). */
 export function managedGodotPath(): string {
   const exe = process.platform === "win32" ? "godot.exe" : "godot";
-  return join(homedir(), ".nexusforge", "engines", "godot", exe);
+  return join(dataRoot(), "engines", "godot", exe);
 }
 
 /** Platform-specific official download info (Godot 4.3 stable, GitHub Releases). */
@@ -68,7 +69,7 @@ export class Godot4Adapter implements EngineAdapter {
           return { installed: true, version: ver, path: bin, note: "Ready" };
         }
         if (ver) {
-          return { installed: false, version: ver, path: bin, note: `Found Godot ${ver} — Nexus templates target Godot 4.x.` };
+          return { installed: false, version: ver, path: bin, note: `Found Godot ${ver} — WorldSmith templates target Godot 4.x.` };
         }
       } catch {
         // candidate not usable — keep looking
@@ -77,7 +78,7 @@ export class Godot4Adapter implements EngineAdapter {
     const dl = godotDownloadForPlatform();
     return {
       installed: false, version: null, path: null,
-      note: `Not installed. ${dl ? "Nexus Forge can download the official Godot 4.3 binary automatically (Engines → Install)." : `No managed download configured for ${process.platform}/${process.arch} — install Godot 4 manually and set the path in Settings.`}`,
+      note: `Not installed. ${dl ? "WorldSmith AI can download the official Godot 4.3 binary automatically (Engines → Install)." : `No managed download configured for ${process.platform}/${process.arch} — install Godot 4 manually and set the path in Settings.`}`,
     };
   }
 
@@ -194,7 +195,7 @@ function scanRuntimeErrors(out: string): ValidationIssue[] {
 export async function downloadGodot(onProgress?: (pct: number) => void): Promise<{ path: string; version: string }> {
   const dl = godotDownloadForPlatform();
   if (!dl) throw new Error(`No managed Godot download configured for ${process.platform}/${process.arch}. Install Godot 4 manually.`);
-  const destDir = join(homedir(), ".nexusforge", "engines", "godot");
+  const destDir = join(dataRoot(), "engines", "godot");
   mkdirSync(destDir, { recursive: true });
   const zipPath = join(destDir, "godot.zip");
   const binPath = managedGodotPath();

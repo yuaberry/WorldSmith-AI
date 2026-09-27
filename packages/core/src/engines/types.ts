@@ -4,7 +4,7 @@
  * Methods are honest: if an engine is not installed, detect() says so and
  * build() throws a clear error instead of pretending.
  */
-import type { Dimension, EngineId, QualityTier } from "@nexus/shared";
+import type { Dimension, EngineId, QualityTier } from "@worldsmith/shared";
 
 /** Parameters that drive project generation (from Game DNA). */
 export interface GameSpec {

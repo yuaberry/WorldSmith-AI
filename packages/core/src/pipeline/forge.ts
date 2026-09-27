@@ -7,7 +7,7 @@
  * No stage pretends success: failures stop the pipeline with a clear reason
  * and everything done so far stays committed and auditable.
  */
-import type { DnaSection, Dimension, EngineId, ForgeStage, GameBrief, Origin, QualityTier, ContentRating } from "@nexus/shared";
+import type { DnaSection, Dimension, EngineId, ForgeStage, GameBrief, Origin, QualityTier, ContentRating } from "@worldsmith/shared";
 import { bus } from "../events";
 import { Workspace } from "../workspace";
 import { GitRepo } from "../git";
@@ -16,11 +16,11 @@ import { getAdapter, ensureGodot } from "../engines/manager";
 import { planGame, generateGdd, type GamePlan } from "../orchestrator/director";
 import { getProject, updateProject, insertTasks, listTasks, updateTask, nextRunnableTask, computeProgress, createProject, type ProjectRow } from "../orchestrator/store";
 import { runCoderTask } from "../agents/runtime";
-import { uid } from "../util";
+import { uid, dataRoot } from "../util";
 
 export const ALL_STAGES: ForgeStage[] = ["analyze", "dna", "gdd", "architecture", "scaffold", "tasks", "buildout", "validate"];
 
-const GIT_IDENTITY = { name: "Nexus Forge", email: "nexus@forge.local" };
+const GIT_IDENTITY = { name: "WorldSmith AI", email: "worldsmith@ai.local" };
 
 export interface ForgeOptions {
   stages?: ForgeStage[];
@@ -114,7 +114,7 @@ function _writeDnaDocument(projectId: string, plan: GamePlan): void {
     lines.push("Toda decisao estrutural do projeto e versionada na tabela `decisions` do banco e nos commits do Git.");
     lines.push("");
     lines.push("---");
-    lines.push("*Documento gerado automaticamente pelo Nexus Forge em " + new Date().toISOString().slice(0, 10) + ".*");
+    lines.push("*Documento gerado automaticamente pelo WorldSmith AI em " + new Date().toISOString().slice(0, 10) + ".*");
     const { mkdirSync, writeFileSync } = require("node:fs") as typeof import("node:fs");
     const { join } = require("node:path") as typeof import("node:path");
     const proj = getProject(projectId);
@@ -274,9 +274,8 @@ async function stageValidate(p: ProjectRow, ws: Workspace, git: GitRepo, plan: G
       if (p.engine === "godot4" && templatesInstalled()) {
         const det = await new Godot4Adapter().detect();
         if (det.installed && det.path) {
-          const { homedir } = await import("node:os");
           const { join } = await import("node:path");
-          const outDir = join(homedir(), ".nexusforge", "previews", p.slug);
+          const outDir = join(dataRoot(), "previews", p.slug);
           stage(p.id, "preview", "Refreshing live preview…", "info");
           const result = await exportWeb(p.data_path, det.path, outDir);
           stage(p.id, "preview", result.ok ? "Live preview updated." : `Preview refresh failed: ${result.error}`, result.ok ? "success" : "warning");

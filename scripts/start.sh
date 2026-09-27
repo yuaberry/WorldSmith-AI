@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Nexus Forge — Linux/macOS launcher
+# WorldSmith AI — Linux/macOS launcher
 # Requires: Bun (https://bun.sh) and (optional) pnpm for first install.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-echo "── NEXUS FORGE ──────────────────────────────"
+echo "── WORLDSMITH AI ──────────────────────────────"
 if ! command -v bun >/dev/null 2>&1; then
   echo "✖ Bun not found. Install it first:"
   echo "   curl -fsSL https://bun.sh/install | bash"

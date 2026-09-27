@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, ChevronRight, HardDrive, Cpu, Boxes, Activity, MonitorPlay } from "lucide-react";
 import { api, type ProjectDto } from "../lib/api";
-import { useNexus } from "../store";
+import { useStudio } from "../store";
 
 const STATUS_COLORS: Record<string, string> = {
   playable: "text-good border-good/40 bg-good/10",
@@ -24,7 +24,7 @@ const PHRASES = [
 
 export default function Home() {
   const nav = useNavigate();
-  const { status, events } = useNexus();
+  const { status, events } = useStudio();
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [phrase, setPhrase] = useState(0);
@@ -47,17 +47,17 @@ export default function Home() {
     <div className="p-7 max-w-6xl mx-auto space-y-6">
       {/* ── Hero ── */}
       <section className="panel panel-key panel-lift p-8 relative overflow-hidden rise-in">
-        <div className="absolute -right-24 -top-32 w-96 h-96 rounded-full bg-nexus/12 blur-3xl" />
+        <div className="absolute -right-24 -top-32 w-96 h-96 rounded-full bg-brand/12 blur-3xl" />
         <div className="absolute -left-16 -bottom-24 w-72 h-72 rounded-full bg-violet/10 blur-3xl" />
         <div className="relative">
-          <div className="kicker">NEXUS FORGE · AI AUTONOMOUS GAME STUDIO</div>
+          <div className="kicker">WORLDSMITH AI · AUTONOMOUS GAME STUDIO</div>
           <h1 className="text-[40px] leading-[1.05] font-extrabold tracking-tight mt-3">
             {PHRASES[phrase] && <span key={phrase} className="rise-in inline-block grad-text">{PHRASES[phrase]}</span>}
           </h1>
           <p className="text-mute text-[14.5px] mt-3 max-w-xl leading-relaxed">
             Uma equipe de agentes de IA planeja o design, escreve o GDD, programa em GDScript,
             valida no Godot de verdade e entrega — <span className="text-ink font-semibold">jogável dentro do estúdio</span>,
-            kit Steam completo e executável <span className="text-nexus-soft">.exe</span> pronto para publicar.
+            kit Steam completo e executável <span className="text-brand-soft">.exe</span> pronto para publicar.
           </p>
           <div className="flex gap-3 mt-6 flex-wrap">
             <button className="btn btn-primary py-3 px-6 text-[14px]" onClick={() => nav("/create")}>
@@ -75,7 +75,7 @@ export default function Home() {
       {/* ── Status strip ── */}
       <section className="grid grid-cols-4 gap-4">
         {[
-          { icon: <Cpu size={17} />, color: "text-nexus", label: "AI PROVIDER", value: status?.aiConfigured ? "Online" : "Modo offline", tone: status?.aiConfigured ? "text-good" : "text-warn" },
+          { icon: <Cpu size={17} />, color: "text-brand", label: "AI PROVIDER", value: status?.aiConfigured ? "Online" : "Modo offline", tone: status?.aiConfigured ? "text-good" : "text-warn" },
           { icon: <HardDrive size={17} />, color: "text-cyan-live", label: "GODOT 4.3", value: status?.engines.find((e) => e.engine === "godot4")?.installed ? "Instalado" : "Ausente", tone: status?.engines.find((e) => e.engine === "godot4")?.installed ? "text-good" : "text-bad" },
           { icon: <Boxes size={17} />, color: "text-violet", label: "PROJETOS", value: `${projects.length} no workspace`, tone: "text-ink" },
           { icon: <Activity size={17} />, color: "text-good", label: "JOGÁVEIS", value: `${playable} validados`, tone: playable > 0 ? "text-good" : "text-mute" },
@@ -110,9 +110,9 @@ export default function Home() {
                 <button
                   key={p.id}
                   onClick={() => nav(`/project/${p.id}`)}
-                  className="w-full flex items-center gap-4 p-3.5 rounded-xl border border-edge bg-panel-2/40 hover:border-nexus/60 hover:bg-panel-2/70 transition-all text-left group"
+                  className="w-full flex items-center gap-4 p-3.5 rounded-xl border border-edge bg-panel-2/40 hover:border-brand/60 hover:bg-panel-2/70 transition-all text-left group"
                 >
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-nexus/30 to-violet/20 border border-nexus/25 grid place-items-center font-extrabold text-[13px] text-nexus-soft shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-brand/30 to-violet/20 border border-brand/25 grid place-items-center font-extrabold text-[13px] text-brand-soft shrink-0">
                     {p.name.slice(0, 1).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -123,7 +123,7 @@ export default function Home() {
                     <div className="progress-bar"><div className="progress-fill" style={{ width: `${p.progress}%` }} /></div>
                   </div>
                   <span className={`tag shrink-0 ${STATUS_COLORS[p.status] ?? ""}`}>{p.status}</span>
-                  <ChevronRight size={15} className="text-faint group-hover:text-nexus-soft transition-colors" />
+                  <ChevronRight size={15} className="text-faint group-hover:text-brand-soft transition-colors" />
                 </button>
               ))}
             </div>
@@ -141,7 +141,7 @@ export default function Home() {
             {events.slice(0, 12).map((e) => (
               <div key={e.id} className="slide-in flex gap-2.5 items-start">
                 <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                  e.level === "success" ? "bg-good" : e.level === "error" ? "bg-bad" : e.level === "warning" ? "bg-warn" : "bg-nexus"
+                  e.level === "success" ? "bg-good" : e.level === "error" ? "bg-bad" : e.level === "warning" ? "bg-warn" : "bg-brand"
                 }`} />
                 <div className="min-w-0">
                   <div className="text-[11.5px] leading-snug text-mute">{e.message}</div>

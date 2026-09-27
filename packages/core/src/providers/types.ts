@@ -8,7 +8,7 @@
  *   to the model for one repair round before giving up.
  * - Model-per-agent assignment lives in settings (assignModel).
  */
-import type { AgentRole } from "@nexus/shared";
+import type { AgentRole } from "@worldsmith/shared";
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";

@@ -1,6 +1,6 @@
-# PLAN.MD — NEXUS FORGE · Documento-Mãe de Continuidade
+# PLAN.MD — WORLDSMITH AI · Documento-Mãe de Continuidade
 
-> ⚡ **AI Autonomous Game Development Studio** — o usuário descreve o jogo em linguagem natural; agentes de IA derivam uma **GameSpecification** formal, forjam o projeto completo (código, mundo determinístico, assets com Art Bible e pixel art de nível estúdio, dados), **validam no Godot de verdade**, geram Steam Kit completo, builds executáveis (.exe/Linux/macOS) e um preview **jogável dentro do estúdio e no site**.
+> ⚡ **WorldSmith AI** (renomeado de *Nexus Forge* na v0.10.0 — ver §14) — **AI Autonomous Game Development Studio**: o usuário descreve o jogo em linguagem natural; agentes de IA derivam uma **GameSpecification** formal, forjam o projeto completo (código, mundo determinístico, assets com Art Bible e pixel art de nível estúdio, dados), **validam no Godot de verdade**, geram Steam Kit completo, builds executáveis (.exe/Linux/macOS) e um preview **jogável dentro do estúdio e no site**.
 >
 > **Este arquivo é a memória integral do projeto.** Se o chat foi compactado: leia este documento INTEIRO, depois o `README.md` e o `docs/STATUS.md`, execute o Protocolo de Retomada (§9) e só então toque em código.
 
@@ -10,9 +10,9 @@
 
 **Visão original do dono**: *"minha ideia inicial era fazer um Launcher Engine com preview ao vivo"*.
 
-**Visão evoluída (atual, confirmada pelo dono)**: um **AI Game Production Environment de nível estúdio internacional** — não um gerador de mockups, não um chatbot de código. O usuário escreve um prompt natural (ex.: o metroidvania dark fantasy do §2), e o Nexus Forge produz **um jogo de verdade**: especificação formal → Game DNA → GDD → arquitetura → mundo interconectado → código modular data-driven → **assets com direção de arte consistente (Art Bible) e pixel art profissional** → validação automatizada em engine real → Steam Kit completo (capa, descrição, screenshots, legal) → builds standalone → preview jogável no navegador.
+**Visão evoluída (atual, confirmada pelo dono)**: um **AI Game Production Environment de nível estúdio internacional** — não um gerador de mockups, não um chatbot de código. O usuário escreve um prompt natural (ex.: o metroidvania dark fantasy do §2), e o WorldSmith AI produz **um jogo de verdade**: especificação formal → Game DNA → GDD → arquitetura → mundo interconectado → código modular data-driven → **assets com direção de arte consistente (Art Bible) e pixel art profissional** → validação automatizada em engine real → Steam Kit completo (capa, descrição, screenshots, legal) → builds standalone → preview jogável no navegador.
 
-**Identity**: `NEXUS FORGE` · *AI Autonomous Game Development Studio* · **Imagine. Direct. Build.**
+**Identity**: `WORLDSMITH AI` · *AI Autonomous Game Development Studio* · **Imagine. Direct. Build.** · *(até v0.9.0: NEXUS FORGE — histórico preservado nas citações)*
 
 **Pilares invioláveis** (extraídos de todas as sessões — regem toda decisão):
 1. **Honestidade antes de polish**: nada de botão "Coming Soon" falso; 402 de créditos, QA indisponível ou feature pendente são dito com clareza (§ "No fake professionalism").
@@ -112,19 +112,27 @@
 
 ---
 
+### S3-M — RENOMEAÇÃO COMPLETA (v0.10.0)
+> "Atue como um engenheiro de software sênior… Quero realizar uma **renomeação completa** do meu projeto, anteriormente chamado Nexus Forge, para **WorldSmith AI**… todas as referências internas, externas, visuais e documentais… sem reduzir funcionalidades… compatibilidade e migração… não faça push sem autorização."
+> **Resultado v0.10.0**: auditoria completa (300+ ocorrências classificadas em 35+ arquivos) → identidade (UI, títulos, status, X-Title, personas, banner, 404 page, créditos dos jogos gerados, Steam Kit, launchers) → pacotes `@nexus/*`→`@worldsmith/*` (+ pnpm lock regenerado) → tokens CSS `nexus`→`brand` · `useNexus`→`useStudio` → binários `worldsmith-ai(.exe/-macos)` → **MIGRAÇÃO DE DADOS**: `dataRoot()` renomeia `~/.nexusforge`→`~/.worldsmith` atomicamente (fallback seguro), `nexus.db`→`worldsmith.db`, `UPDATE projects.data_path` (paths absolutos no DB!), `.nexusforge-tmp`→`.worldsmith-tmp`, env `WORLDSMITH_NO_OPEN` (legacy `NEXUS_NO_OPEN` aceito) → LICENSE/README/STATUS/site → commit local (push PENDENTE de autorização).
+> **Invariantes novas**: (18) scrypt salt `"nexus-forge-v1"` é IMUTÁVEL (derivador da chave AES — mudar destrói `secrets.enc`); (19) URLs `github.com/yuaberry/nexus-forge` funcionais até rename manual (GitHub redireciona); (20) nunca esquecer o `UPDATE projects.data_path` — paths absolutos vivem no DB; (21) `&` em `sed` substitui pelo match inteiro (`&nbsp;` precisa de escape `\&`).
+
+---
+
 ## 4. FATOS ESSENCIAIS (estado atual)
 
 | Item | Valor |
 |---|---|
-| Versão | **v0.9.0** — Estúdio Web no Pages + QA no validate + system map + props v2 |
-| Repo | `~/nexus-forge/` · https://github.com/yuaberry/nexus-forge (MIT, `gh` logado como `yuaberry`) |
-| Site+demo | https://yuaberry.github.io/nexus-forge/ (Pages serve `docs/`; demo WASM em `docs/demo/`) |
-| Executáveis | `dist-release/nexus-forge.exe` (Win) · `nexus-forge` (Linux) · `nexus-forge-macos` — UI embutida |
-| Stack | pnpm monorepo: `packages/core` (Bun 1.4.2, TS strict, `bun:sqlite`), `apps/ui` (React+Vite+Tailwind v4), `packages/shared` (zod) |
+| Versão | **v0.10.0** — RENOMEAÇÃO: Nexus Forge → **WorldSmith AI** (+ estúdio Web no Pages, QA no validate, system map, props v2 na v0.9.0) |
+| Nome | **WorldSmith AI** · binários `worldsmith-ai(.exe/-macos)` · pacotes `@worldsmith/*` · dados `~/.worldsmith/` (migração automática de `~/.nexusforge/`) |
+| Repo | `~/nexus-forge/` (checkout local — nome do dir é irrelevante) · https://github.com/yuaberry/nexus-forge (MIT, `gh` logado; **rename do repo = passo manual pendente**) |
+| Site+demo | https://yuaberry.github.io/nexus-forge/ (Pages serve `docs/`; muda p/ `…/worldsmith-ai/` quando o repo for renomeado; demo WASM em `docs/demo/`; estúdio demo em `docs/studio/`) |
+| Executáveis | `dist-release/worldsmith-ai.exe` (Win) · `worldsmith-ai` (Linux) · `worldsmith-ai-macos` — UI embutida |
+| Stack | pnpm monorepo: `@worldsmith/core` (Bun 1.4.2, TS strict, `bun:sqlite`), `@worldsmith/ui` (React+Vite+Tailwind v4), `@worldsmith/shared` (zod) |
 | App | `bun run packages/core/src/main.ts serve` → http://127.0.0.1:5180 |
-| Engine | **Godot 4.3** auto-baixado em `~/.nexusforge/engines/godot/godot`; export templates instalados |
-| IA | OpenRouter (chave: arquivo `~/Key Openrouter Free`; cifrada em `~/.nexusforge/secrets.enc`). Texto: `z-ai/glm-5.3-flash` · Imagem: `google/gemini-3.1-flash-image` (créditos oscilam, ladder 3000→1024→512) · Visão: `z-ai/glm-5.3` |
-| Dados | Projetos `~/.nexusforge/projects/` · DB `~/.nexusforge/nexus.db` · previews/builds/cache em `~/.nexusforge/` |
+| Engine | **Godot 4.3** auto-baixado em `~/.worldsmith/engines/godot/godot`; export templates instalados |
+| IA | OpenRouter (chave: arquivo `~/Key Openrouter Free`; cifrada em `~/.worldsmith/secrets.enc`). Texto: `z-ai/glm-5.3-flash` · Imagem: `google/gemini-3.1-flash-image` (créditos oscilam, ladder 3000→1024→512) · Visão: ladder gratuito `nemotron-3-nano-omni → qwen3.8-27b → gemma-4-31b` com retry |
+| Dados | Projetos `~/.worldsmith/projects/` · DB `~/.worldsmith/worldsmith.db` (migração `nexus.db`+`projects.data_path` idempotente) · previews/builds/cache em `~/.worldsmith/` |
 | Testes | `bun test packages/core/tests` → **28 testes, 180 asserts, verdes** (`forge2.test.ts` + `assets.test.ts`) |
 | E2E de referência | Projeto `hollow-echoes` (prompt-exato da diretiva): `bun run scripts/e2e-rescaffold.ts` → scaffold+validate **PASS**, 0 erros Godot |
 | Modelos-por-agente | settings DB (`modelAssignments`); direção LLM+fallback determinístico sempre |
@@ -156,11 +164,11 @@ packages/core/src/
 │   │             mv_world (GameState + sprite_frames_for + room loader/checkpoint/pickup) · mv_ui (HUD/diálogo/mapa/menu)
 │   ├── godotExport.ts (templates streaming + import→exportWeb) · publish/ (storeKit 21 arquivos + builds .exe)
 │   ├── systems/ systemMap.ts (§11.3: sistema→arquivo→knob por gênero, injetado no coder)
-├── agents/ prompts.ts (personas) + runtime.ts (coder→validação→fixer ×3) · providers/ (AIProvider+OpenRouter+registry)
-├── dna/ knowledge/ db/ events.ts settings.ts workspace.ts git.ts
-packages/shared (zod: DnaSection/Origin, Task, ForgeStage, GameBrief) · apps/ui (wizard, dashboard, Live
-Preview, Steam Kit, Assets, DNA, Code, Logs, Settings, lib/demo.ts — modo web-demo com intercept) · scripts/
-(start.*, build-release.ts, e2e-rescaffold.ts, export-demo-data.ts, test-vision-qa.ts)
+├── agents/ prompts.ts (personas) + runtime.ts (coder→validação→fixer ×3, com systemMap §11.3) · providers/ (AIProvider+OpenRouter+registry)
+├── dna/ knowledge/ db/ events.ts settings.ts workspace.ts git.ts util (dataRoot com MIGRAÇÃO ~/.nexusforge→~/.worldsmith)
+@worldsmith/shared (zod: DnaSection/Origin, Task, ForgeStage, GameBrief) · @worldsmith/ui (wizard, dashboard, Live
+Preview, Steam Kit, Assets, DNA, Code, Logs, Settings, lib/demo.ts — modo web-demo com intercept, store useStudio) · scripts/
+(start.*, build-release.ts → binários worldsmith-ai*, e2e-rescaffold.ts, export-demo-data.ts, test-vision-qa.ts)
 docs/ (site + demo WASM + studio/ = UI compilada com snapshot + STATUS.md) · tests/ (28)
 ```
 
@@ -188,6 +196,13 @@ docs/ (site + demo WASM + studio/ = UI compilada com snapshot + STATUS.md) · te
 12. **Timeouts LLM**: fetch com AbortController 5min + retry; 4xx (≠429) fail-fast; max_tokens ladder contra 402.
 13. **Segredos**: chave NUNCA em código/log/repo (grep antes de publicar); cifrada AES-256-GCM machine-bound.
 14. **Honestidade**: 402/indisponível/pendente → dito com clareza em eventos/UI/STATUS; zero mocks.
+15. **Visão gratuita é flaky** (429/ResourceExhausted): ladder nemotron→qwen→gemma com 5 tentativas e backoff; 401/402 fail-fast.
+16. **Um dist, três servidores**: o mesmo build da UI serve localhost-root (exe), subpath (`/studio/`) e dev — por isso `base: "./"` + HashRouter.
+17. **Snapshot demo = dados REAIS** exportados do projeto (nunca mock); mutações do demo respondem 400 com mensagem honesta.
+18. **scrypt salt `"nexus-forge-v1"` é IMUTÁVEL**: é o derivador da chave AES que decifra `secrets.enc` — mudar destrói a chave salva.
+19. **Paths absolutos vivem no DB**: renomeios de data-dir exigem `UPDATE projects.data_path` (implementado na migração do DB).
+20. **URLs do repo são compat, não identidade**: `github.com/yuaberry/nexus-forge` funciona hoje e redireciona após rename manual.
+21. **`&` em `sed` = match inteiro**: literais com `&` (ex.: `&nbsp;`) precisam de escape `\&` — já corrompi e reparei um arquivo por isso.
 
 ## 8. AMBIENTE (dev machine)
 
@@ -212,8 +227,8 @@ bun test packages/core/tests
 # 3. E2E REAL — o produto ainda forja jogos?
 bun run scripts/e2e-rescaffold.ts
 #    → espera: "forge scaffold+validate: true null"
-cd ~/.nexusforge/projects/hollow-echoes && \
-~/.nexusforge/engines/godot/godot --headless --path . --quit-after 5 2>&1 | grep -cE "SCRIPT ERROR|Parse Error|ERR_"
+cd ~/.worldsmith/projects/hollow-echoes && \
+~/.worldsmith/engines/godot/godot --headless --path . --quit-after 5 2>&1 | grep -cE "SCRIPT ERROR|Parse Error|ERR_"
 #    → espera: 0
 
 # 4. Só agora: implementar. Regras durante o trabalho:
@@ -259,4 +274,18 @@ cd ~/.nexusforge/projects/hollow-echoes && \
 1. Ler antes de alterar; causa raiz antes de consertar. 2. Zero dados falsos. 3. Passos pequenos, verificados, testados. 4. Registrar erros próprios (§7). 5. Segredos fora do repo. 6. Nunca inventar API — medir contra o runtime. 7. "Do not say 'I would implement…' — actually implement it." 8. Ao terminar cada fase: testes reais → corrigir → commit → push → atualizar PLAN.md/STATUS.
 
 ---
-_Atualizado em 2026-09-27 (v0.9.0 — estúdio no Pages, QA no validate, system map, props v2) para sobreviver à compactação. Fontes de verdade: este arquivo + `git log --oneline` + `gh release list` (v0.1→v0.9.0)._
+
+
+---
+
+## 14. RENOMEAÇÃO v0.10.0 — NEXUS FORGE → WORLDSMITH AI (registro da decisão)
+
+**Renomeado**: nome do produto (UI/títulos/status/personas/créditos dos jogos gerados), pacotes (`@worldsmith/{core,shared,ui}`, root `worldsmith-ai`), binários (`worldsmith-ai.exe/-macos`), tokens CSS (`brand`), store (`useStudio`), data-dir (`~/.worldsmith`), DB (`worldsmith.db`), env (`WORLDSMITH_NO_OPEN`), LICENSE, README, STATUS, site, launchers.
+
+**Migração automática e idempotente** (zero perda de dados): `dataRoot()` renomeia `~/.nexusforge`→`~/.worldsmith` (atômico, fallback para o antigo se falhar) → construtor do DB renomeia `nexus.db`→`worldsmith.db` → `UPDATE projects SET data_path = REPLACE(...)` reponta os projetos. Backup prévio do crítico em `/tmp/opencode/nexusforge-backup-pre-rename/` (db+secrets+projects).
+
+**Mantido INTENCIONALMENTE (compat/histórico)**: scrypt salt `nexus-forge-v1` (invariável 18 — decifra `secrets.enc`); URLs `github.com/yuaberry/nexus-forge` + site `yuaberry.github.io/nexus-forge` (redirecionam pós-rename manual); env legacy `NEXUS_NO_OPEN` aceito; citações históricas nos §2/§3 e no `Plan.MD` arquivado; diretório local de checkout `~/nexus-forge/` (nome de checkout não é identidade); `.nexusforge/` no .gitignore (rollback).
+
+**PASSOS MANUAIS PENDENTES (autorização do dono)**: rename do repo GitHub (Settings → renomear; Pages/URLs redirecionam) → atualizar URLs do site/README → `git push` do commit local → release v0.10.0 com os 3 binários novos → (opcional) logo/ícone oficial da marca.
+---
+_Atualizado em 2026-09-27 (v0.10.0 — RENOMEAÇÃO WorldSmith AI + tudo da v0.9.0). Fontes de verdade: este arquivo + `git log --oneline` + `gh release list`._

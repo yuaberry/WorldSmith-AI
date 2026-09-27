@@ -8,7 +8,7 @@
  * Every file touch is event-logged; nothing is silent.
  */
 import { z } from "zod";
-import type { Task } from "@nexus/shared";
+import type { Task } from "@worldsmith/shared";
 import { chatJson, getProviderForRole } from "../providers/registry";
 import { PERSONAS } from "./prompts";
 import { dnaContext } from "../dna";

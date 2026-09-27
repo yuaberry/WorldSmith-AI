@@ -1,10 +1,10 @@
 @echo off
-REM Nexus Forge — Windows launcher
+REM WorldSmith AI — Windows launcher
 REM Requires: Bun (https://bun.sh)  and  Node/pnpm for the UI build step.
 setlocal
 cd /d "%~dp0.."
 
-echo --- NEXUS FORGE --------------------------------
+echo --- WORLDSMITH AI --------------------------------
 where bun >nul 2>&1
 if errorlevel 1 (
   echo [X] Bun not found. Install it first: https://bun.sh

@@ -1,7 +1,7 @@
 /**
  * Project & task store — typed persistence over SQLite.
  */
-import type { CreateProjectInput, Task, TaskStatus, TaskType, TaskRisk, AgentRole } from "@nexus/shared";
+import type { CreateProjectInput, Task, TaskStatus, TaskType, TaskRisk, AgentRole } from "@worldsmith/shared";
 import { getDB } from "../db";
 import { now, projectsRoot, ensureDirs, uid } from "../util";
 import { join } from "node:path";

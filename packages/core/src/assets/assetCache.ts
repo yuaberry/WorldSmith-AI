@@ -2,15 +2,16 @@
  * Asset reuse system (§18) — content-addressed canonical cache.
  * The same (generator + params) always yields the same bytes: a castle wall
  * referenced 100 times costs ONE generation. Cache lives in
- * ~/.nexusforge/asset-cache keyed by a params hash; the manifest records
+ * ~/.worldsmith/asset-cache keyed by a params hash; the manifest records
  * canonicalOf so regeneration skips identical work and retheme only
  * re-forges what actually changed.
  */
+import { dataRoot } from "../util";
 import { existsSync, mkdirSync } from "node:fs";
-import { homedir } from "node:os";
+
 import { join } from "node:path";
 
-const CACHE_DIR = join(homedir(), ".nexusforge", "asset-cache");
+const CACHE_DIR = join(dataRoot(), "asset-cache");
 
 /** Stable FNV-1a-ish hash of the generator identity + params. */
 export function paramHash(generator: string, params: unknown): string {

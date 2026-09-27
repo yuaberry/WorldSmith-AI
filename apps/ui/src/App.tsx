@@ -1,10 +1,10 @@
-/** Nexus Forge — application shell: sidebar hub + topbar + routed views. */
+/** WorldSmith AI — application shell: sidebar hub + topbar + routed views. */
 import { useEffect, useState } from "react";
 import { HashRouter, Routes, Route, useNavigate } from "react-router-dom";
 import {
   LayoutGrid, Hammer, Sparkles, Settings2, ChevronRight, Cpu, Boxes, Star, Globe,
 } from "lucide-react";
-import { useNexus } from "./store";
+import { useStudio } from "./store";
 import { api, type ProjectDto } from "./lib/api";
 import { initDemo } from "./lib/demo";
 import Home from "./features/Home";
@@ -30,7 +30,7 @@ function Sidebar() {
       href={to}
       onClick={(e) => { e.preventDefault(); nav(to); }}
       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-all ${
-        active ? "bg-nexus/15 text-nexus-soft border border-nexus/25" : "text-mute hover:text-ink hover:bg-panel-2 border border-transparent"
+        active ? "bg-brand/15 text-brand-soft border border-brand/25" : "text-mute hover:text-ink hover:bg-panel-2 border border-transparent"
       }`}
     >
       {icon} {label}
@@ -41,11 +41,11 @@ function Sidebar() {
     <aside className="w-[228px] shrink-0 border-r border-edge glass flex flex-col z-10">
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-center gap-2.5">
-          <div className="logo-mark w-9 h-9 rounded-xl bg-gradient-to-br from-nexus to-violet grid place-items-center shrink-0">
+          <div className="logo-mark w-9 h-9 rounded-xl bg-gradient-to-br from-brand to-violet grid place-items-center shrink-0">
             <Hammer size={18} className="text-white" />
           </div>
           <div className="min-w-0">
-            <div className="font-extrabold tracking-[0.12em] text-[14px] leading-none">NEXUS FORGE</div>
+            <div className="font-extrabold tracking-[0.12em] text-[14px] leading-none">WORLDSMITH AI</div>
             <div className="text-[9px] text-faint mt-1 tracking-[0.22em]">AI GAME STUDIO</div>
           </div>
         </div>
@@ -72,7 +72,7 @@ function Sidebar() {
                 onClick={(e) => { e.preventDefault(); nav(`/project/${p.id}`); }}
                 className="group flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12.5px] text-mute hover:text-ink hover:bg-panel-2 transition-colors"
               >
-                <Star size={11} className="text-faint group-hover:text-nexus-soft shrink-0" />
+                <Star size={11} className="text-faint group-hover:text-brand-soft shrink-0" />
                 <span className="truncate flex-1">{p.name}</span>
                 <span className={`text-[9.5px] shrink-0 ${p.status === "playable" ? "text-good" : p.status === "failed" ? "text-bad" : "text-cyan-live"}`}>
                   {p.progress}%
@@ -89,15 +89,15 @@ function Sidebar() {
         </nav>
       </div>
       <div className="px-5 py-4 border-t border-edge text-[10px] text-faint leading-relaxed">
-        Imagine. <span className="text-nexus-soft">Direct.</span> Build.<br />
-        <span className="text-mute">{useNexus.getState().demo ? "v0.9.0 — Web Demo" : "v0.9.0 — Live Preview"}</span>
+        Imagine. <span className="text-brand-soft">Direct.</span> Build.<br />
+        <span className="text-mute">{useStudio.getState().demo ? "v0.10.0 — Web Demo" : "v0.10.0 — Live Preview"}</span>
       </div>
     </aside>
   );
 }
 
 function Topbar() {
-  const { status, connected, demo } = useNexus();
+  const { status, connected, demo } = useStudio();
   return (
     <header className="h-12 shrink-0 border-b border-edge glass flex items-center gap-4 px-5 z-10">
       <div className="flex items-center gap-2 text-[12px]">
@@ -131,7 +131,7 @@ function Topbar() {
 }
 
 function DemoBanner() {
-  const demo = useNexus((s) => s.demo);
+  const demo = useStudio((s) => s.demo);
   if (!demo) return null;
   return (
     <div className="shrink-0 border-b border-warn/25 bg-warn/8 px-5 py-2 text-[12px] text-warn flex items-center gap-2">
@@ -146,14 +146,14 @@ function DemoBanner() {
 }
 
 export default function App() {
-  const { connect, refreshStatus } = useNexus();
+  const { connect, refreshStatus } = useStudio();
   const [booted, setBooted] = useState(false);
 
   useEffect(() => {
     let t: ReturnType<typeof setInterval> | undefined;
     void (async () => {
       const isDemo = await initDemo();
-      useNexus.setState({ demo: isDemo });
+      useStudio.setState({ demo: isDemo });
       if (!isDemo) {
         connect();
         void refreshStatus();
@@ -167,11 +167,11 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!booted) return <div className="h-full grid place-items-center text-mute kicker">booting nexus…</div>;
+  if (!booted) return <div className="h-full grid place-items-center text-mute kicker">booting worldsmith…</div>;
 
   return (
     <HashRouter>
-      <div className="h-full flex nexus-bg">
+      <div className="h-full flex brand-bg">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0 relative">
           <Topbar />

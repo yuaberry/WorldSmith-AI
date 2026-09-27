@@ -32,8 +32,8 @@ export class OpenRouterAdapter implements AIProvider {
           headers: {
             "Authorization": `Bearer ${key}`,
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://nexus-forge.local",
-            "X-Title": "Nexus Forge",
+            "HTTP-Referer": "https://worldsmith-ai.local",
+            "X-Title": "WorldSmith AI",
           },
           body: JSON.stringify({
             model,

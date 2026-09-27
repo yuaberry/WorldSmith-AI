@@ -4,6 +4,7 @@
  */
 import { Database, type SQLQueryBindings } from "bun:sqlite";
 import { join } from "node:path";
+import { existsSync, renameSync } from "node:fs";
 import { dataRoot, ensureDirs, now, uid } from "../util";
 
 export const SCHEMA = `
@@ -117,9 +118,22 @@ export class DB {
 
   constructor(path?: string) {
     ensureDirs(dataRoot());
-    this.db = new Database(path ?? join(dataRoot(), "nexus.db"));
+    // MIGRATION (Nexus Forge → WorldSmith AI): old nexus.db → worldsmith.db, and
+    // project rows stored absolute paths under ~/.nexusforge — repoint once.
+    const legacyDb = join(dataRoot(), "nexus.db");
+    const canonicalDb = join(dataRoot(), "worldsmith.db");
+    if (path === undefined && !existsSync(canonicalDb) && existsSync(legacyDb)) {
+      renameSync(legacyDb, canonicalDb);
+      console.warn("[worldsmith] migrated database nexus.db → worldsmith.db.");
+    }
+    this.db = new Database(path ?? canonicalDb);
     this.db.exec("PRAGMA journal_mode = WAL;");
     this.db.exec(SCHEMA);
+    // Repoint stored project paths (idempotent: 0 rows when already migrated).
+    this.db.run(
+      `UPDATE projects SET data_path = REPLACE(data_path, '/.nexusforge/', '/.worldsmith/')
+       WHERE data_path LIKE '%/.nexusforge/%'`
+    );
   }
 
   prepare(sql: string) { return this.db.prepare(sql); }

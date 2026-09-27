@@ -5,12 +5,12 @@ import {
   Play, Dna, Code2, ScrollText, ExternalLink, ShieldCheck, RefreshCw, Terminal, MonitorPlay, Store, Package, Wand2,
 } from "lucide-react";
 import { api, type ProjectDto, type TaskDto, type EventDto } from "../lib/api";
-import { useNexus } from "../store";
+import { useStudio } from "../store";
 
 const STAGES = ["analyze", "dna", "gdd", "architecture", "scaffold", "tasks", "buildout", "validate"];
 
 const LEVEL_DOT: Record<string, string> = {
-  info: "bg-nexus",
+  info: "bg-brand",
   success: "bg-good",
   warning: "bg-warn",
   error: "bg-bad",
@@ -28,7 +28,7 @@ const TASK_STATUS_STYLE: Record<string, string> = {
 export default function ProjectView() {
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
-  const { events } = useNexus();
+  const { events } = useStudio();
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [tasks, setTasks] = useState<TaskDto[]>([]);
   const [initialEvents, setInitialEvents] = useState<EventDto[]>([]);
