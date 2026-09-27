@@ -125,9 +125,9 @@
 |---|---|
 | Versão | **v0.10.0** — RENOMEAÇÃO: Nexus Forge → **WorldSmith AI** (+ estúdio Web no Pages, QA no validate, system map, props v2 na v0.9.0) |
 | Nome | **WorldSmith AI** · binários `worldsmith-ai(.exe/-macos)` · pacotes `@worldsmith/*` · dados `~/.worldsmith/` (migração automática de `~/.nexusforge/`) |
-| Repo | `~/nexus-forge/` (checkout local — nome do dir é irrelevante) · https://github.com/yuaberry/nexus-forge (MIT, `gh` logado; **rename do repo = passo manual pendente**) |
-| Site+demo | https://yuaberry.github.io/nexus-forge/ (Pages serve `docs/`; muda p/ `…/worldsmith-ai/` quando o repo for renomeado; demo WASM em `docs/demo/`; estúdio demo em `docs/studio/`) |
-| Executáveis | `dist-release/worldsmith-ai.exe` (Win) · `worldsmith-ai` (Linux) · `worldsmith-ai-macos` — UI embutida |
+| Repo | `~/nexus-forge/` (checkout local — nome do dir é irrelevante) · https://github.com/yuaberry/WorldSmith-AI (MIT, `gh` logado; **repo renomeado pelo dono** em 2026-09-27) |
+| Site+demo | https://yuaberry.github.io/WorldSmith-AI/ (Pages serve `docs/`; URL antiga /nexus-forge/ redireciona; demo WASM em `docs/demo/`; estúdio demo em `docs/studio/`; ícone em `docs/icon.png`) |
+| Executáveis | `dist-release/WorldSmith AI.exe` (Win) · `WorldSmith AI` (Linux) · `WorldSmith AI-macos` — UI embutida · **`worldsmith-ai_0.10.0_amd64.deb`** (installer Debian: /usr/bin/worldsmith-ai + .desktop + ícone) |
 | Stack | pnpm monorepo: `@worldsmith/core` (Bun 1.4.2, TS strict, `bun:sqlite`), `@worldsmith/ui` (React+Vite+Tailwind v4), `@worldsmith/shared` (zod) |
 | App | `bun run packages/core/src/main.ts serve` → http://127.0.0.1:5180 |
 | Engine | **Godot 4.3** auto-baixado em `~/.worldsmith/engines/godot/godot`; export templates instalados |
@@ -286,6 +286,12 @@ cd ~/.worldsmith/projects/hollow-echoes && \
 
 **Mantido INTENCIONALMENTE (compat/histórico)**: scrypt salt `nexus-forge-v1` (invariável 18 — decifra `secrets.enc`); URLs `github.com/yuaberry/nexus-forge` + site `yuaberry.github.io/nexus-forge` (redirecionam pós-rename manual); env legacy `NEXUS_NO_OPEN` aceito; citações históricas nos §2/§3 e no `Plan.MD` arquivado; diretório local de checkout `~/nexus-forge/` (nome de checkout não é identidade); `.nexusforge/` no .gitignore (rollback).
 
-**PASSOS MANUAIS PENDENTES (autorização do dono)**: rename do repo GitHub (Settings → renomear; Pages/URLs redirecionam) → atualizar URLs do site/README → `git push` do commit local → release v0.10.0 com os 3 binários novos → (opcional) logo/ícone oficial da marca.
+**PASSOS MANUAIS — CONCLUÍDOS na S3-N**: repo renomeado (WorldSmith-AI) ✓ · URLs atualizadas ✓ · push autorizado/concluído ✓ · binários com marca + .deb ✓ · ícone oficial ✓. Pendente apenas: release v0.10.0 (4 artefatos prontos em `dist-release/`) e registro de marca (jurídico, a cargo do dono).
 ---
-_Atualizado em 2026-09-27 (v0.10.0 — RENOMEAÇÃO WorldSmith AI + tudo da v0.9.0). Fontes de verdade: este arquivo + `git log --oneline` + `gh release list`._
+
+
+### S3-N — Repo renomeado + binários com marca + .deb (v0.10.0 final)
+> Dono: "já renomeei o Repo, **autorizo o push**. renomeia também os executáveis … para o **WorldSmith AI.exe**… tanto para as outras versões, MacOS, Linux - **.deb**"
+> **Resultado**: repo → `github.com/yuaberry/WorldSmith-AI` (remote atualizado, push `df87e7c` ✓); binários com nome de marca: `WorldSmith AI.exe` / `WorldSmith AI` / `WorldSmith AI-macos`; **.deb Debian real** (`worldsmith-ai_0.10.0_amd64.deb`, 28.8MB: /usr/bin/worldsmith-ai + .desktop + ícone hicolor + copyright MIT, via `dpkg-deb`); ícone oficial gerado com o próprio pixel engine (`docs/icon.png` 256×256 + favicon UI/site); URLs site×5/README atualizadas; PLAN §14 congelado.
+> **Invariantes**: (22) binário dentro de pacote OS usa nome PATH-friendly (`worldsmith-ai` no /usr/bin, sem espaço) — o nome com espaço é da ARTIFACT de download, não do executável de sistema; (23) ícone de marca gerado deterministicamente pelo próprio engine (gen-icon.ts) — nunca placeholder.
+_Atualizado em 2026-09-27 (v0.10.0 FINAL — WorldSmith AI: repo renomeado, binários com marca, .deb Debian, ícone oficial). Fontes de verdade: este arquivo + `git log --oneline` + `gh release list`._

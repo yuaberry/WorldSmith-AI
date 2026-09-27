@@ -1,14 +1,16 @@
 /**
  * Release builder — turns the whole studio into standalone executables:
- *   worldsmith-ai.exe (Windows x64) · worldsmith-ai (Linux x64) · worldsmith-ai-macos
+ *   WorldSmith AI.exe (Windows x64) · WorldSmith AI (Linux x64) · WorldSmith AI-macos (Apple Silicon)
+ *   + worldsmith-ai_<version>_amd64.deb (Debian/Ubuntu/Mint installer)
  *
- * Steps: build UI → embed it as base64 → bun --compile per target.
+ * Steps: build UI → embed it as base64 → bun --compile per target → dpkg-deb.
  * Bun's standalone executables embed the runtime, so users just double-click.
  */
-import { readdirSync, readFileSync, statSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
+import { readdirSync, readFileSync, statSync, mkdirSync, writeFileSync, existsSync, rmSync, copyFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { execSync } from "node:child_process";
 
+const VERSION = "0.10.0";
 const ROOT = join(import.meta.dir, "..");
 const UI_DIST = join(ROOT, "apps", "ui", "dist");
 const EMBED_TS = join(ROOT, "packages", "core", "src", "ui-embed.generated.ts");
@@ -34,11 +36,11 @@ if (existsSync(join(UI_DIST, "index.html"))) {
   process.exit(1);
 }
 
-// 2) compile per target
+// 2) compile per target (branded display names — spaces on purpose)
 const TARGETS: Array<[string, string, string]> = [
-  ["bun-windows-x64", "worldsmith-ai.exe", "Windows x64"],
-  ["bun-linux-x64", "worldsmith-ai", "Linux x64"],
-  ["bun-darwin-arm64", "worldsmith-ai-macos", "macOS Apple Silicon"],
+  ["bun-windows-x64", "WorldSmith AI.exe", "Windows x64"],
+  ["bun-linux-x64", "WorldSmith AI", "Linux x64"],
+  ["bun-darwin-arm64", "WorldSmith AI-macos", "macOS Apple Silicon"],
 ];
 
 for (const [target, out, label] of TARGETS) {
@@ -49,9 +51,63 @@ for (const [target, out, label] of TARGETS) {
   );
 }
 
+// 3) Debian package (Linux installer): binary at /usr/bin/worldsmith-ai
+//    (PATH-friendly, no spaces), branded menu entry + icon.
+const DEB_NAME = `worldsmith-ai_${VERSION}_amd64.deb`;
+const DEB_ROOT = join(OUT_DIR, "deb-stage");
+rmSync(DEB_ROOT, { recursive: true, force: true });
+const debDir = (p: string) => { mkdirSync(join(DEB_ROOT, p), { recursive: true }); return join(DEB_ROOT, p); };
+
+writeFileSync(
+  join(debDir("DEBIAN"), "control"),
+  `Package: worldsmith-ai
+Version: ${VERSION}
+Section: devel
+Priority: optional
+Architecture: amd64
+Maintainer: Yua Devs <yuaberry@users.noreply.github.com>
+Depends: libc6
+Description: WorldSmith AI — AI Autonomous Game Development Studio
+ Describe a game in natural language; AI agents plan the design (Game DNA,
+ GDD), scaffold a real Godot 4.3 project, paint studio-grade assets, write
+ GDScript, validate headless, ship Steam kits and playable WASM previews.
+`,
+);
+copyFileSync(join(OUT_DIR, "WorldSmith AI"), join(debDir("usr/bin"), "worldsmith-ai"));
+copyFileSync(join(ROOT, "docs", "icon.png"), join(debDir("usr/share/icons/hicolor/256x256/apps"), "worldsmith-ai.png"));
+writeFileSync(
+  join(debDir("usr/share/applications"), "worldsmith-ai.desktop"),
+  `[Desktop Entry]
+Type=Application
+Name=WorldSmith AI
+GenericName=AI Game Studio
+Comment=AI Autonomous Game Development Studio — Imagine. Direct. Build.
+Exec=worldsmith-ai
+Terminal=true
+Categories=Development;Game;
+Icon=worldsmith-ai
+StartupNotify=true
+`,
+);
+writeFileSync(
+  join(debDir("usr/share/doc/worldsmith-ai"), "copyright"),
+  `Format: https://www.debian.org/doc/packaging-manuals/copyright-file/1.0/
+Upstream-Name: WorldSmith AI
+Source: https://github.com/yuaberry/WorldSmith-AI
+
+Files: *
+Copyright: 2026 Yua Devs
+License: MIT
+`,
+);
+execSync(`dpkg-deb --build --root-owner-group "${DEB_ROOT}" "${join(OUT_DIR, DEB_NAME)}"`, { stdio: "inherit" });
+rmSync(DEB_ROOT, { recursive: true, force: true });
+
 console.log(`\n✓ Standalone builds in ${OUT_DIR}:`);
 for (const [, out] of TARGETS) {
   const p = join(OUT_DIR, out);
   if (existsSync(p)) console.log(`  ${out}  (${(statSync(p).size / 1048576).toFixed(1)} MB)`);
 }
+const debP = join(OUT_DIR, DEB_NAME);
+if (existsSync(debP)) console.log(`  ${DEB_NAME}  (${(statSync(debP).size / 1048576).toFixed(1)} MB) — install: sudo dpkg -i ${DEB_NAME}`);
 console.log(`\nUsage: run the executable — it starts the studio and opens http://127.0.0.1:5180 in your browser.`);

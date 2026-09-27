@@ -50,8 +50,8 @@ IDEIA → INTENT → GAME DNA → GDD → ARQUITETURA → SCAFFOLD GODOT
 curl -fsSL https://bun.sh/install | bash
 
 # 2) Clone e inicie (instala deps, compila a UI, baixa o Godot 4.3 se faltar)
-git clone https://github.com/yuaberry/nexus-forge.git
-cd nexus-forge
+git clone https://github.com/yuaberry/WorldSmith-AI.git
+cd WorldSmith-AI
 ./scripts/start.sh          # Linux    (Windows: scripts\start.bat · macOS: ./scripts/start.command)
 
 # 3) Abra o estúdio
