@@ -105,7 +105,9 @@ func open_tree(id: String) -> void:
 		return
 	in_dialogue = true
 	dlg_box.visible = true
-	var portrait: Texture2D = GameState.tex("res://assets/sprites/npc_0.png")
+	var portrait: Texture2D = GameState.tex("res://assets/portraits/npc.png")
+	if portrait == null:
+		portrait = GameState.tex("res://assets/sprites/npc_0.png")
 	dlg_portrait.texture = portrait
 	_open_node(String(active_tree.get("start", "")))
 	get_tree().paused = true

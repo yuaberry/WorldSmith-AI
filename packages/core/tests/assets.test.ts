@@ -123,3 +123,80 @@ function diff(a: { w: number; h: number; rgba: Uint8Array }, b: { w: number; h: 
   }
   return d / (a.w * a.h);
 }
+
+describe("Animation Package System (§4, §5)", () => {
+  const MV = { title: "T", slug: "t", dimension: "2.5d", qualityTier: "indie", flavor: "metroidvania", palette: { primary: "#4f7cff", accent: "#a78bfa", bg: "#12131a" }, playerSpeed: 200, shortDescription: "dark fantasy metroidvania" } as never;
+
+  test("player pack has the full combat/locomotion set with events", () => {
+    const files = metroidvaniaFiles(MV);
+    const anims = JSON.parse(files["data/animations.json"] as string);
+    expect(anims.player.ATTACK.frames).toBe(3);
+    expect(anims.player.ATTACK.events.some((e: { type: string }) => e.type === "hit_active")).toBe(true);
+    expect(anims.player.PARRY.events[0].type).toBe("parry_window_open");
+    for (const name of ["IDLE", "WALK", "RUN", "JUMP", "FALL", "ATTACK", "PARRY", "HURT", "DEATH"]) {
+      expect(anims.player[name], name).toBeDefined();
+      expect(files[`assets/anims/player/${name}_0.png`], `${name} frame file`).toBeDefined();
+    }
+  });
+
+  test("every declared frame file exists (no dangling manifest references)", () => {
+    const files = metroidvaniaFiles(MV);
+    const anims = JSON.parse(files["data/animations.json"] as string) as Record<string, Record<string, { frames: number }>>;
+    for (const [char, defs] of Object.entries(anims)) {
+      for (const [anim, def] of Object.entries(defs)) {
+        for (let i = 0; i < def.frames; i++) {
+          expect(files[`assets/anims/${char}/${anim}_${i}.png`], `${char}/${anim}_${i}`).toBeDefined();
+        }
+      }
+    }
+  });
+
+  test("attack poses share identity with idle (anticipation->impact->recovery)", () => {
+    const files = metroidvaniaFiles(MV);
+    const idle = decodePNG(files["assets/anims/player/IDLE_0.png"] as Uint8Array)!;
+    const windup = decodePNG(files["assets/anims/player/ATTACK_0.png"] as Uint8Array)!;
+    const impact = decodePNG(files["assets/anims/player/ATTACK_1.png"] as Uint8Array)!;
+    expect(idle).not.toBeNull(); expect(windup).not.toBeNull(); expect(impact).not.toBeNull();
+    const dW = frameDiffRatio(idle, windup), dI = frameDiffRatio(idle, impact);
+    expect(dW).toBeLessThan(0.45); // same body, repositioned weapon
+    expect(dI).toBeLessThan(0.45); // §2: no identity drift between poses
+  });
+
+  test("support assets: portraits/icons/prompts/logo all decode", () => {
+    const files = metroidvaniaFiles(MV);
+    for (const p of ["assets/portraits/npc.png", "assets/portraits/boss.png", "assets/icons/ability_dash.png", "assets/ui/key_tab.png", "assets/ui/logo.png"]) {
+      const info = decodePNG(files[p] as Uint8Array);
+      expect(info, p).not.toBeNull();
+    }
+  });
+
+  test("manifest gains importSettings + dependencies (§12, §17)", () => {
+    const files = metroidvaniaFiles(MV);
+    const manifest = JSON.parse(files["data/asset_manifest.json"] as string);
+    const spriteEntry = manifest.assets.find((a: { type: string }) => a.type === "sprite");
+    expect(spriteEntry.importSettings.filter).toBe("nearest");
+    expect(spriteEntry.importSettings.qualityTier).toBeDefined();
+    expect(Array.isArray(spriteEntry.dependencies)).toBe(true);
+  });
+});
+
+describe("Asset reuse cache (§18)", () => {
+  test("same generator+params → byte-identical cached reuse", async () => {
+    const { cachedGenerate, cacheStats } = await import("../src/assets/assetCache");
+    const params = { pal: { accent: "#a78bfa", bg: "#0d0e16" }, test: Date.now() };
+    const first = cachedGenerate("test:gen", params, () => new Uint8Array([1, 2, 3, 4]));
+    const second = cachedGenerate("test:gen", params, () => { throw new Error("should not regenerate"); });
+    expect(second.cached).toBe(true);
+    expect(Array.from(second.bytes)).toEqual(Array.from(first.bytes));
+    expect(cacheStats().files).toBeGreaterThan(0);
+  });
+});
+
+function frameDiffRatio(a: { w: number; h: number; rgba: Uint8Array }, b: { w: number; h: number; rgba: Uint8Array }): number {
+  if (a.w !== b.w || a.h !== b.h) return 1;
+  let d = 0;
+  for (let i = 0; i < a.rgba.length; i += 4) {
+    if (Math.abs(a.rgba[i]! - b.rgba[i]!) + Math.abs(a.rgba[i + 3]! - b.rgba[i + 3]!) > 40) d++;
+  }
+  return d / (a.w * a.h);
+}

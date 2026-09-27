@@ -113,6 +113,48 @@ func play_sfx(id: String) -> void:
 	var p: AudioStreamPlayer = _sfx[id]
 	p.play()
 
+## ANIMATION PACK BUILDER (§5): reads data/animations.json and builds named
+## SpriteFrames (FPS, loop, events) from assets/anims/<char>/<ANIM>_<i>.png.
+## Falls back to the legacy single-strip in assets/sprites/ when no pack.
+func sprite_frames_for(char_id: String) -> SpriteFrames:
+	var sf := SpriteFrames.new()
+	var pack: Dictionary = {}
+	var raw := FileAccess.get_file_as_string("res://data/animations.json")
+	var parsed = JSON.parse_string(raw) if raw != "" else null
+	if parsed:
+		pack = parsed.get(char_id, {})
+	if not pack.is_empty():
+		for anim_name in pack:
+			var def: Dictionary = pack[anim_name]
+			var n: int = int(def.get("frames", 1))
+			var first: Texture2D = tex("res://assets/anims/%s/%s_0.png" % [char_id, anim_name])
+			if first == null:
+				continue
+			sf.add_animation(anim_name)
+			sf.set_animation_speed(anim_name, float(def.get("fps", 8)))
+			sf.set_animation_loop(anim_name, bool(def.get("loop", true)))
+			for i in range(n):
+				var t: Texture2D = tex("res://assets/anims/%s/%s_%d.png" % [char_id, anim_name, i])
+				if t != null:
+					sf.add_frame(anim_name, t)
+		return sf
+	# legacy single-strip fallback
+	var frames: Array[Texture2D] = anim_frames("res://assets/sprites/" + char_id)
+	if frames.size() > 0:
+		sf.add_animation("IDLE")
+		sf.set_animation_speed("IDLE", 6.0)
+		sf.set_animation_loop("IDLE", true)
+		for f in frames:
+			sf.add_frame("IDLE", f)
+	return sf
+
+func play_on(node: Node, anim: String) -> void:
+	if node is AnimatedSprite2D:
+		var a: AnimatedSprite2D = node as AnimatedSprite2D
+		if a.sprite_frames and a.sprite_frames.has_animation(anim):
+			if a.animation != anim:
+				a.play(anim)
+
 func spawn_spark(pos: Vector2) -> void:
 	for n in get_tree().get_nodes_in_group("world_root"):
 		if n.has_method("spawn_spark"):

@@ -144,7 +144,10 @@ export function validateAssets(files: Record<string, Uint8Array>, expectations: 
   }
 
   // Frame consistency (§2): same-base frames must differ slightly (>=2%)
-  // but never dramatically (<45%) — characters must not change identity.
+  // but never dramatically — characters must not change identity. Combat and
+  // hit-reaction animations legitimately change silhouette (weapon arcs,
+  // kneel) so they get a wider-but-still-bounded budget (§4 anim types).
+  const COMBAT_OR_REACTION = new Set(["ATTACK", "PARRY", "HURT", "DEATH", "TELEGRAPH", "STAGGER", "WINDUP"]);
   const byBase = new Map<string, PngInfo[]>();
   for (const [path, bytes] of Object.entries(files)) {
     const m = path.match(/^(.*)_([0-9]+)\.png$/);
@@ -153,11 +156,13 @@ export function validateAssets(files: Record<string, Uint8Array>, expectations: 
     if (info) (byBase.get(m[1]!) ?? byBase.set(m[1]!, []).get(m[1]!)!).push(info);
   }
   for (const [base, frames] of byBase) {
+    const animName = base.split("/").pop() ?? "";
+    const budget = COMBAT_OR_REACTION.has(animName) ? 0.68 : 0.45;
     for (let i = 1; i < frames.length; i++) {
       const d = frameDiff(frames[0]!, frames[i]!);
       if (d === null) { issues.push(`FRAMES: ${base} frames have different dimensions`); continue; }
       if (d < 0.02) warnings.push(`FRAMES: ${base} frames ${0}-${i} nearly identical — dead animation`);
-      if (d > 0.45) issues.push(`FRAMES: ${base} frame ${i} differs ${Math.round(d * 100)}% from frame 0 — identity drift (§2 violation)`);
+      if (d > budget) issues.push(`FRAMES: ${base} frame ${i} differs ${Math.round(d * 100)}% from frame 0 (budget ${Math.round(budget * 100)}% for ${animName}) — identity drift (§2 violation)`);
     }
   }
 

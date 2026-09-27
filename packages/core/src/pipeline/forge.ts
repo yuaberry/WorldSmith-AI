@@ -178,6 +178,21 @@ async function stageScaffold(p: ProjectRow, ws: Workspace, git: GitRepo, plan: G
     shortDescription: plan.shortDescription,
   };
   const result = await adapter.createProject(ws.root, spec);
+  // §14 — screenshot QA (async, credit-aware, never blocks the build)
+  if (plan.engine === "godot4") {
+    try {
+      const { runScreenshotQA } = await import("../assets/visualQA");
+      const { Godot4Adapter } = await import("../engines/godot");
+      const { deriveBible } = await import("../assets/artBible");
+      const { homedir } = await import("node:os");
+      const det = await new Godot4Adapter().detect();
+      if (det.installed && det.path) {
+        const bible = deriveBible({ title: spec.title, idea: spec.shortDescription });
+        void runScreenshotQA(p.id, ws.root, det.path, bible).catch(() => undefined);
+      }
+      void homedir;
+    } catch { /* QA is a bonus */ }
+  }
   await git.ensureCommitted(`scaffold: ${plan.engine} project (${plan.flavor} starter)`);
   stage(p.id, "scaffold", `Engine project created: ${result.files.length} files on ${adapter.label}.`, "success");
   for (const n of result.notes) stage(p.id, "scaffold", n, "info");

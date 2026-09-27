@@ -20,6 +20,9 @@ import { deriveBible, bibleToMarkdown, type ArtBible } from "../../assets/artBib
 import { forgeMaterials } from "../../assets/materials";
 import { validateAssets, type AssetExpectation } from "../../assets/validate";
 import { buildManifest } from "../../assets/manifest";
+import { buildAnimPack, animationsJson } from "../../assets/animPackBuilder";
+import { forgeSupportAssets } from "../../assets/supportAssets";
+import { cachedGenerate } from "../../assets/assetCache";
 
 export function metroidvaniaFiles(spec: GameSpec): Record<string, string | Uint8Array> {
   const pal = { accent: spec.palette.accent, bg: spec.palette.bg };
@@ -97,8 +100,18 @@ renderer/rendering_method="gl_compatibility"
 
   const bible: ArtBible = deriveBible({ title: spec.title, idea: spec.shortDescription });
   const biblePal = { accent: bible.identities.protagonist.colors.main, bg: bible.palette.bg };
-  const sprites = forgeDefaultSprites(biblePal);
+  // §18 — canonical reuse: identical bible params reuse identical bytes
+  const sprites = Object.fromEntries(
+    Object.entries(forgeDefaultSprites(biblePal)).map(([path, bytes]) => [
+      path,
+      cachedGenerate("spriteForge:" + path, { pal: biblePal }, () => bytes as Uint8Array).bytes,
+    ]),
+  );
   const materials = forgeMaterials(bible.environment.materials, biblePal);
+  // §4/§5 — real animation packages (named anims, FPS, loops, events)
+  const animPack = buildAnimPack(bible);
+  // §16 — support assets sharing the same visual identity
+  const support = forgeSupportAssets(bible);
 
   // §13 — technical validation BEFORE assets enter the game
   const expectations: AssetExpectation[] = [
@@ -110,18 +123,25 @@ renderer/rendering_method="gl_compatibility"
     })),
     ...Object.keys(materials).map((path) => ({ path, minDim: 32, maxDim: 32, requireAlpha: false })),
   ];
-  const report = validateAssets({ ...sprites, ...materials }, expectations);
+  const report = validateAssets({ ...sprites, ...materials, ...animPack.files, ...support }, expectations);
   if (!report.pass) {
     throw new Error(`Asset validation FAILED (§13):\n${report.issues.join("\n")}`);
   }
 
   // §12 — manifest: the engine knows which assets belong to which systems
+  const allGenerated = { ...sprites, ...materials, ...animPack.files, ...support };
   const manifestEntries = buildManifest({
-    sprites: { ...sprites, ...materials },
+    sprites: allGenerated,
     bibleStyle: bible.style,
     materials: bible.environment.materials,
     report,
-  });
+  }).map((e) => ({
+    ...e,
+    // §12 — dependencies + import profiles (§17 quality tiers)
+    dependencies: e.type === "sprite" ? ["data/animations.json"] : e.type === "portrait" ? ["data/dialogue.json"] : [],
+    importSettings: { filter: "nearest", mipmaps: false, compression: "lossless", qualityTier: e.type === "backdrop" ? "HIGH" : "MEDIUM" },
+    targetPlatform: ["windows", "linux", "web"],
+  }));
 
   return {
     "project.godot": mvProjectGodot,
@@ -168,6 +188,11 @@ renderer/rendering_method="gl_compatibility"
     "audio/click.wav": sfxClick(),
     "scripts/ui/hud_fallback.gd": hudScript(spec),
 
+    // ANIMATION PACK (§4/§5) — named anims with events, read at runtime
+    "data/animations.json": animationsJson(animPack),
+    ...Object.fromEntries(Object.entries(animPack.files)),
+    // SUPPORT ASSETS (§16) — portraits/icons/prompts/logo from the bible
+    ...Object.fromEntries(Object.entries(support)),
     // ART BIBLE (§1) — persistent artifact; every asset references it
     "data/art_bible.json": JSON.stringify(bible, null, 2),
     "docs/art-bible.md": bibleToMarkdown(bible, spec.title),

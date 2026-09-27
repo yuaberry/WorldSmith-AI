@@ -41,6 +41,10 @@ func _ready() -> void:
 	add_child(shape)
 	visual = _build_visual("player", Color("#7fa0ff"), Vector2(20, 34))
 	add_child(visual)
+	if visual is AnimatedSprite2D:
+		var av: AnimatedSprite2D = visual as AnimatedSprite2D
+		av.animation_finished.connect(_on_anim_finished)
+		av.frame_changed.connect(_on_frame_changed)
 	camera_rig = Camera2D.new()
 	camera_rig.position_smoothing_enabled = true
 	camera_rig.position_smoothing_speed = 5.0
@@ -51,6 +55,14 @@ func s(key: String, fallback: float) -> float:
 	return float(stats.get(key, fallback))
 
 func _build_visual(base: String, fallback_color: Color, fallback_size: Vector2) -> CanvasItem:
+	var pack: SpriteFrames = GameState.sprite_frames_for(base)
+	if pack != null and pack.get_animation_names().size() > 0:
+		var ap := AnimatedSprite2D.new()
+		ap.sprite_frames = pack
+		ap.scale = Vector2(2.2, 2.2)
+		if pack.has_animation("IDLE"):
+			ap.play("IDLE")
+		return ap
 	var frames: Array[Texture2D] = GameState.anim_frames("res://assets/sprites/" + base)
 	if frames.size() > 1:
 		var sf := SpriteFrames.new()
@@ -84,13 +96,12 @@ func _physics_process(delta: float) -> void:
 	dash_cd = max(dash_cd - delta, 0.0)
 	if attack_timer > 0.0:
 		attack_timer -= delta
-		_try_hit()
 		if attack_timer <= 0.0 and state == State.ATTACK:
 			state = State.FALL if not is_on_floor() else State.IDLE
-		if visual is AnimatedSprite2D:
-			(visual as AnimatedSprite2D).play("idle")
 	if dead:
+		GameState.play_on(visual, "DEATH")
 		return
+	_map_state_anim()
 	var grav: float = s("gravity", 1150.0)
 	if is_on_floor():
 		coyote = 0.12
@@ -195,6 +206,35 @@ func respawn(pos: Vector2) -> void:
 	GameState.health = GameState.max_health
 	iframes = 1.2
 	state = State.IDLE
+
+## STATE TO ANIMATION MAPPING (5): clean transitions between named anims.
+func _map_state_anim() -> void:
+	match state:
+		State.ATTACK: GameState.play_on(visual, "ATTACK")
+		State.PARRY: GameState.play_on(visual, "PARRY")
+		State.DASH: GameState.play_on(visual, "RUN")
+		State.HURT: GameState.play_on(visual, "HURT")
+		State.JUMP: GameState.play_on(visual, "JUMP")
+		State.FALL: GameState.play_on(visual, "FALL")
+		State.IDLE: GameState.play_on(visual, "IDLE")
+		State.RUN: GameState.play_on(visual, "RUN")
+
+## ANIMATION EVENTS (§4): hit lands on the ATTACK impact frame, not a timer.
+func _on_frame_changed() -> void:
+	if visual is AnimatedSprite2D:
+		var av: AnimatedSprite2D = visual as AnimatedSprite2D
+		if av.animation == "ATTACK" and av.frame == 1:
+			attack_hit = false
+			_try_hit()
+
+func _on_anim_finished() -> void:
+	if visual is AnimatedSprite2D:
+		var av: AnimatedSprite2D = visual as AnimatedSprite2D
+		if av.animation == "ATTACK" or av.animation == "PARRY" or av.animation == "HURT":
+			if state == State.ATTACK:
+				state = State.FALL if not is_on_floor() else State.IDLE
+			elif state != State.DEAD:
+				state = State.FALL if not is_on_floor() else State.IDLE
 `;
 }
 
