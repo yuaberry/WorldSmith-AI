@@ -59,7 +59,7 @@ func _build_visual(base: String, fallback_color: Color, fallback_size: Vector2) 
 	if pack != null and pack.get_animation_names().size() > 0:
 		var ap := AnimatedSprite2D.new()
 		ap.sprite_frames = pack
-		ap.scale = Vector2(2.2, 2.2)
+		ap.scale = Vector2(1.5, 1.5)
 		if pack.has_animation("IDLE"):
 			ap.play("IDLE")
 		return ap
@@ -79,7 +79,7 @@ func _build_visual(base: String, fallback_color: Color, fallback_size: Vector2) 
 	elif frames.size() == 1:
 		var single := Sprite2D.new()
 		single.texture = frames[0]
-		single.scale = Vector2(2.2, 2.2)
+		single.scale = Vector2(1.5, 1.5)
 		return single
 	var cr := ColorRect.new()
 	cr.size = fallback_size
@@ -136,7 +136,7 @@ func _physics_process(delta: float) -> void:
 			facing = sign(dir)
 			velocity.x = dir * s("speed", 260.0)
 			if visual is Node2D:
-				(visual as Node2D).scale = Vector2(2.2 * facing, 2.2)
+				(visual as Node2D).scale = Vector2(1.5 * facing, 1.5)
 		else:
 			velocity.x = move_toward(velocity.x, 0.0, 1800.0 * delta)
 		if not is_on_floor():

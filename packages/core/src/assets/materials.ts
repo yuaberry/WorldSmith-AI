@@ -5,6 +5,7 @@
  * The biome in the Art Bible selects which materials a project uses.
  */
 import { Px, type ForgePalette, type RGB } from "./spriteForgeHelpers";
+import { paintStoneTile, paintWoodTile, paintCrystalTile } from "./envPainters";
 
 export interface MaterialDef { id: string; label: string; usage: string }
 
@@ -37,7 +38,10 @@ export function paintMaterial(id: string, pal: ForgePalette, size = 32): Uint8Ar
   const base = hexRGB(pal.bg);
   const rnd = rng(id.split("").reduce((a, c) => a + c.charCodeAt(0) * 31, 7));
   switch (id) {
-    case "aged_stone": {
+    case "aged_stone": return paintStoneTile(pal, size);
+    case "ancient_wood": return paintWoodTile(pal, size);
+    case "magical_crystal": return paintCrystalTile(pal, size);
+    case "aged_stone_legacy": {
       const stone = sh(base, 2.0);
       const mortar = sh(base, 1.25);
       p.rect(0, 0, size, size, stone);

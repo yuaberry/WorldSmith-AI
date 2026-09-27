@@ -12,6 +12,8 @@
  */
 
 import { Px, encodePNG, type RGB, type ForgePalette } from "./spriteForgeHelpers";
+import { paintHeroV2 } from "./heroPainter";
+import { paintCreatureV2, paintBossV2, paintNpcV2 } from "./creaturePainters";
 
 type Hex = string;
 function hexRGB(hex: Hex): RGB {
@@ -129,7 +131,7 @@ export function playerAnimPack(pal: ForgePalette, col: CharacterColors): { files
 
   const add = (name: string, poses: Pose[], def: Omit<AnimDef, "frames" | "pivot">) => {
     poses.forEach((pose, i) => {
-      files[`assets/anims/player/${name}_${i}.png`] = paintHeroPose(pal, col, pose);
+      files[`assets/anims/player/${name}_${i}.png`] = paintHeroV2(pose, { main: col.main, trim: col.trim, skin: col.skin ?? "#e8bea0", eye: col.eye ?? "#fbbf24" });
     });
     defs[name] = { ...def, frames: poses.length, pivot: [8, 16] };
   };
@@ -171,28 +173,8 @@ export function enemyAnimPack(pal: ForgePalette, col: CharacterColors): { files:
   const danger = hexRGB(col.danger ?? "#e5484d");
 
   const body = (frame: number, opts: { squat?: number; lunge?: number; tint?: RGB; rise?: number } = {}) => {
-    const size = 16;
-    const p = new Px(size, size);
-    const outline: RGB = [18, 12, 16];
-    const cx = Math.floor(size / 2);
-    const rise = opts.rise ?? 0;
-    const lunge = opts.lunge ?? 0;
-    const color = opts.tint ?? danger;
-    p.circle(cx + lunge, 9 + rise, 5, color);
-    p.circle(cx + lunge, 11 + rise, 3, sh(color, 0.55));
-    p.line(cx - 4 + lunge, 4 + rise, cx - 5 + lunge, 1 + rise, [230, 220, 200]);
-    p.line(cx + 4 + lunge, 4 + rise, cx + 5 + lunge, 1 + rise, [230, 220, 200]);
-    p.set(cx - 2 + lunge, 8 + rise, [255, 240, 90]);
-    p.set(cx + 2 + lunge, 8 + rise, [255, 240, 90]);
-    p.rect(cx - 4 + lunge, 13, 2, 2 - (opts.squat ?? 0), sh(color, 0.55));
-    p.rect(cx + 2 + lunge, 13, 2, 2 - (opts.squat ?? 0), sh(color, 0.55));
     void frame;
-    const snap = new Uint8Array(p.data);
-    const has = (x: number, y: number) => x >= 0 && y >= 0 && x < size && y < size && (snap[(y * size + x) * 4 + 3] ?? 0) > 0;
-    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-      if (!has(x, y) && (has(x + 1, y) || has(x - 1, y) || has(x, y + 1) || has(x, y - 1))) p.set(x, y, outline);
-    }
-    return encodePNG(size, size, p.data);
+    return paintCreatureV2(0, col.danger ?? "#e5484d", 24, { tint: opts.tint, lunge: opts.lunge, rise: opts.rise });
   };
 
   const add = (name: string, list: Uint8Array[], def: Omit<AnimDef, "frames" | "pivot">) => {
@@ -216,25 +198,11 @@ export function bossAnimPack(pal: ForgePalette, col: CharacterColors): { files: 
   const defs: Record<string, AnimDef> = {};
   const robe = hexRGB(col.main);
   const paint = (opts: { rise?: number; spread?: number; glow?: boolean; slam?: boolean }) => {
-    const size = 24;
-    const p = new Px(size, size);
-    const cx = size / 2;
-    const rise = opts.rise ?? 0;
-    const spread = opts.spread ?? 8;
-    p.circle(Math.floor(cx), 13 + rise, spread, robe);
-    p.circle(Math.floor(cx), 16 + rise, spread - 3, sh(robe, 0.6));
-    p.rect(6, 10 + rise, 12, 2, sh(robe, 1.25));
-    p.set(Math.floor(cx) - 3, 9 + rise, [255, 236, 130]);
-    p.set(Math.floor(cx) + 3, 9 + rise, [255, 236, 130]);
-    p.line(8, 6 + rise, 6, 2 + rise, [160, 130, 220]);
-    p.line(16, 6 + rise, 18, 2 + rise, [160, 130, 220]);
-    if (opts.glow) { p.set(4, 20, [200, 235, 255], 200); p.set(19, 20, [200, 235, 255], 200); }
-    if (opts.slam) { p.rect(2, 21, 20, 2, [255, 220, 140], 180); }
-    return encodePNG(size, size, p.data);
+    return paintBossV2(0, col.main, col.trim, 32, { rise: opts.rise, glow: opts.glow });
   };
   const add = (name: string, list: Uint8Array[], def: Omit<AnimDef, "frames" | "pivot">) => {
     list.forEach((bytes, i) => { files[`assets/anims/boss/${name}_${i}.png`] = bytes; });
-    defs[name] = { ...def, frames: list.length, pivot: [12, 24] };
+    defs[name] = { ...def, frames: list.length, pivot: [16, 32] };
   };
   add("IDLE", [paint({ rise: 0, glow: true }), paint({ rise: -1, glow: true }), paint({ rise: 1 })], { fps: 3, loop: true, tags: ["boss"] });
   add("WINDUP", [paint({ rise: -2, spread: 7 }), paint({ rise: -3, spread: 6, glow: true })], { fps: 6, loop: false, events: [{ frame: 1, type: "pattern_start" }], tags: ["boss", "combat"] });

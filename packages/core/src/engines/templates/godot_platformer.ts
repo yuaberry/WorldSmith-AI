@@ -98,12 +98,12 @@ func _build_visual(base: String, fallback_color: Color, fallback_size: Vector2) 
 		var aspr := AnimatedSprite2D.new()
 		aspr.sprite_frames = sf
 		aspr.play("idle")
-		aspr.scale = Vector2(2.0, 2.0)
+		aspr.scale = Vector2(1.5, 1.5)
 		return aspr
 	elif frames.size() == 1:
 		var single := Sprite2D.new()
 		single.texture = frames[0]
-		single.scale = Vector2(2.0, 2.0)
+		single.scale = Vector2(1.5, 1.5)
 		return single
 	var cr := ColorRect.new()
 	cr.size = fallback_size
@@ -196,12 +196,12 @@ func _build_visual(base: String, fallback_color: Color, fallback_size: Vector2) 
 		var aspr := AnimatedSprite2D.new()
 		aspr.sprite_frames = sf
 		aspr.play("idle")
-		aspr.scale = Vector2(2.0, 2.0)
+		aspr.scale = Vector2(1.5, 1.5)
 		return aspr
 	elif frames.size() == 1:
 		var single := Sprite2D.new()
 		single.texture = frames[0]
-		single.scale = Vector2(2.0, 2.0)
+		single.scale = Vector2(1.5, 1.5)
 		return single
 	var cr := ColorRect.new()
 	cr.size = fallback_size
@@ -275,12 +275,12 @@ func _build_visual(base: String, fallback_color: Color, fallback_size: Vector2) 
 		var aspr := AnimatedSprite2D.new()
 		aspr.sprite_frames = sf
 		aspr.play("idle")
-		aspr.scale = Vector2(2.0, 2.0)
+		aspr.scale = Vector2(1.5, 1.5)
 		return aspr
 	elif frames.size() == 1:
 		var single := Sprite2D.new()
 		single.texture = frames[0]
-		single.scale = Vector2(2.0, 2.0)
+		single.scale = Vector2(1.5, 1.5)
 		return single
 	var cr := ColorRect.new()
 	cr.size = fallback_size

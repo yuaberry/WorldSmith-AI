@@ -10,6 +10,8 @@
  * no native image libraries, deterministic everywhere.
  */
 import { zlibSync } from "fflate";
+import { paintHeroV2 } from "./heroPainter";
+import { paintCreatureV2, paintBossV2, paintNpcV2 } from "./creaturePainters";
 
 // ── PNG encoder ──────────────────────────────────────────────────────────────
 
@@ -116,7 +118,11 @@ function shade(c: RGB, f: number): RGB {
 export interface ForgePalette { accent: string; bg: string; fg?: string }
 
 /** Hero character sprite (16x16, mirrored, outlined, shaded). */
-export function paintHero(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
+export function paintHero(pal: ForgePalette, _size = 16, frame = 0): Uint8Array {
+  return paintHeroV2({ legs: [0, 1, 0, -1][frame % 4], bob: frame % 2 === 1 ? -1 : 0, cloth: frame, weapon: 45, blade: 5 }, { main: pal.accent, trim: "#fbbf24", skin: "#e8bea0", eye: "#fbbf24" });
+}
+
+function _paintHeroLegacy(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
   const p = new Px(size, size);
   const skin: RGB = [232, 190, 160];
   const body = hexRGB(pal.accent);
@@ -154,7 +160,11 @@ export function paintHero(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
 }
 
 /** Creature sprite (imp: round body, horns, eyes). */
-export function paintCreature(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
+export function paintCreature(pal: ForgePalette, _size = 16, frame = 0): Uint8Array {
+  return paintCreatureV2(frame, "#e5484d", 24);
+}
+
+function _paintCreatureLegacy(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
   const p = new Px(size, size);
   const body: RGB = [180, 60, 72];
   const dark = shade(body, 0.55);
@@ -276,7 +286,11 @@ export function paintGlow(pal: ForgePalette, size = 32, frame = 0): Uint8Array {
 }
 
 /** Boss sprite (24x24, 3-frame menacing hover). */
-export function paintBoss(pal: ForgePalette, size = 24, frame = 0): Uint8Array {
+export function paintBoss(pal: ForgePalette, _size = 24, frame = 0): Uint8Array {
+  return paintBossV2(frame, "#5a4282", pal.accent, 32);
+}
+
+function _paintBossLegacy(pal: ForgePalette, size = 24, frame = 0): Uint8Array {
   const p = new Px(size, size);
   const body = shade(hexRGB(pal.accent), 0.55);
   const robe: RGB = [90, 66, 130];
@@ -301,7 +315,11 @@ export function paintBoss(pal: ForgePalette, size = 24, frame = 0): Uint8Array {
 }
 
 /** NPC (robed keeper, 16x16, 2-frame sway). */
-export function paintNpc(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
+export function paintNpc(pal: ForgePalette, _size = 16, frame = 0): Uint8Array {
+  return paintNpcV2(frame, "#607868", 24);
+}
+
+function _paintNpcLegacy(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
   const p = new Px(size, size);
   const robe: RGB = [96, 120, 104];
   const dark = shade(robe, 0.6);

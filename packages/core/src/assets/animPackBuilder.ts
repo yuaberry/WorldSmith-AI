@@ -5,7 +5,8 @@
  */
 import type { ForgePalette } from "./spriteForgeHelpers";
 import { playerAnimPack, enemyAnimPack, bossAnimPack, type AnimDef, type CharacterColors } from "./animPack";
-import { paintNpc, paintCheckpoint, paintPickup, paintShard, paintGlow } from "./spriteForge";
+import { paintCheckpoint, paintPickup, paintShard, paintGlow } from "./spriteForge";
+import { paintNpcV2 } from "./creaturePainters";
 import type { ArtBible } from "./artBible";
 
 export interface AnimPack { files: Record<string, Uint8Array>; meta: Record<string, Record<string, AnimDef>> }
@@ -41,7 +42,8 @@ export function buildAnimPack(bible: ArtBible): AnimPack {
     for (let f = 0; f < frames; f++) files[`assets/anims/${char}/${anim}_${f}.png`] = painter(pal, size, f);
     meta[char] = { [anim]: { frames, fps, loop: true, pivot: [Math.floor(size / 2), size], tags: ["ambient"] } as AnimDef };
   };
-  simple("npc", paintNpc, 2, 2, "IDLE");
+  const npcPaint = (pal2: ForgePalette, _size?: number, frame?: number) => paintNpcV2(frame ?? 0, bible.identities.npc.colors.main);
+  simple("npc", npcPaint, 2, 2, "IDLE", 24);
   simple("checkpoint", paintCheckpoint, 3, 6, "FLAME");
   simple("pickup", paintPickup, 2, 3, "PULSE", 14);
   simple("shard", paintShard, 4, 6, "PULSE", 12);

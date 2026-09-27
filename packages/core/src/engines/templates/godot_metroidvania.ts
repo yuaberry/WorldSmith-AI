@@ -23,6 +23,7 @@ import { buildManifest } from "../../assets/manifest";
 import { buildAnimPack, animationsJson } from "../../assets/animPackBuilder";
 import { forgeSupportAssets } from "../../assets/supportAssets";
 import { cachedGenerate } from "../../assets/assetCache";
+import { paintSkyV2 } from "../../assets/envPainters";
 
 export function metroidvaniaFiles(spec: GameSpec): Record<string, string | Uint8Array> {
   const pal = { accent: spec.palette.accent, bg: spec.palette.bg };
@@ -183,6 +184,7 @@ renderer/rendering_method="gl_compatibility"
 
     // assets: sprites (animated, bible-driven) + audio (synth) + hud fallback
     ...Object.fromEntries(Object.entries(sprites)),
+    "assets/sprites/sky.png": paintSkyV2(biblePal, 256, 144, bible.environment.biome.includes("cypunk") ? "cypunk" : bible.environment.biome.includes("frozen") ? "frozen" : "ruins"),
     "audio/pickup.wav": sfxPickup(),
     "audio/hit.wav": sfxHit(),
     "audio/click.wav": sfxClick(),
