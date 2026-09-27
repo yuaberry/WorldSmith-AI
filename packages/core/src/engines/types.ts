@@ -13,7 +13,7 @@ export interface GameSpec {
   dimension: Dimension;
   qualityTier: QualityTier;
   /** Flavor drives which starter template is used. */
-  flavor: "topdown" | "platformer" | "3d" | "fps" | "turnbattle";
+  flavor: "topdown" | "platformer" | "3d" | "fps" | "turnbattle" | "metroidvania";
   palette: { primary: string; accent: string; bg: string; fg: string };
   playerSpeed: number;
   shortDescription: string;

@@ -1,0 +1,227 @@
+/**
+ * Metroidvania system library — PLAYER.
+ * Real state machine (§4): idle/run/jump/fall/dash/attack/parry/hurt/dead,
+ * coyote time, jump buffering, i-frames, knockback, parry window with
+ * counter, ability-gated dash, data-driven stats (data/player.json).
+ */
+import type { GameSpec } from "../types";
+
+export function mvPlayerScript(spec: GameSpec): string {
+  return `extends CharacterBody2D
+# Player — state machine + parry + i-frames + ability-gated dash.
+# Stats are data-driven: data/player.json (Change Engine edits data, not code).
+
+var stats := {}
+enum State { IDLE, RUN, JUMP, FALL, DASH, ATTACK, PARRY, HURT, DEAD }
+var state: int = State.IDLE
+var visual: CanvasItem = null
+var camera_rig: Camera2D = null
+var facing := 1.0
+var coyote := 0.0
+var jump_buffer := 0.0
+var iframes := 0.0
+var parry_window := 0.0
+var parry_cd := 0.0
+var attack_timer := 0.0
+var attack_hit := false
+var dash_cd := 0.0
+var dead := false
+
+func _ready() -> void:
+	add_to_group("player")
+	var cfg := FileAccess.get_file_as_string("res://data/player.json")
+	if cfg != "":
+		stats = JSON.parse_string(cfg)
+	if stats.is_empty():
+		stats = {"speed": 260.0, "jump": -420.0, "gravity": 1150.0, "parry_window": 0.22, "parry_cd": 0.9, "attack_cd": 0.38, "attack_damage": 12, "attack_range": 34.0, "iframes": 0.8, "dash_speed": 520.0, "dash_cd": 0.8}
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(20, 34)
+	shape.shape = rect
+	add_child(shape)
+	visual = _build_visual("player", Color("#7fa0ff"), Vector2(20, 34))
+	add_child(visual)
+	camera_rig = Camera2D.new()
+	camera_rig.position_smoothing_enabled = true
+	camera_rig.position_smoothing_speed = 5.0
+	add_child(camera_rig)
+	camera_rig.make_current()
+
+func s(key: String, fallback: float) -> float:
+	return float(stats.get(key, fallback))
+
+func _build_visual(base: String, fallback_color: Color, fallback_size: Vector2) -> CanvasItem:
+	var frames: Array[Texture2D] = GameState.anim_frames("res://assets/sprites/" + base)
+	if frames.size() > 1:
+		var sf := SpriteFrames.new()
+		sf.add_animation("idle")
+		sf.set_animation_speed("idle", 6.0)
+		sf.set_animation_loop("idle", true)
+		for f in frames:
+			sf.add_frame("idle", f)
+		var aspr := AnimatedSprite2D.new()
+		aspr.sprite_frames = sf
+		aspr.play("idle")
+		aspr.scale = Vector2(2.2, 2.2)
+		return aspr
+	elif frames.size() == 1:
+		var single := Sprite2D.new()
+		single.texture = frames[0]
+		single.scale = Vector2(2.2, 2.2)
+		return single
+	var cr := ColorRect.new()
+	cr.size = fallback_size
+	cr.color = fallback_color
+	cr.position = fallback_size / -2.0
+	return cr
+
+func _physics_process(delta: float) -> void:
+	coyote = max(coyote - delta, 0.0)
+	jump_buffer = max(jump_buffer - delta, 0.0)
+	iframes = max(iframes - delta, 0.0)
+	parry_window = max(parry_window - delta, 0.0)
+	parry_cd = max(parry_cd - delta, 0.0)
+	dash_cd = max(dash_cd - delta, 0.0)
+	if attack_timer > 0.0:
+		attack_timer -= delta
+		_try_hit()
+		if attack_timer <= 0.0 and state == State.ATTACK:
+			state = State.FALL if not is_on_floor() else State.IDLE
+		if visual is AnimatedSprite2D:
+			(visual as AnimatedSprite2D).play("idle")
+	if dead:
+		return
+	var grav: float = s("gravity", 1150.0)
+	if is_on_floor():
+		coyote = 0.12
+	if Input.is_action_just_pressed("jump"):
+		jump_buffer = 0.12
+	# parry (and dash while unlocked) have priority over movement attacks
+	if Input.is_action_just_pressed("parry") and parry_cd <= 0.0:
+		parry_window = s("parry_window", 0.22)
+		parry_cd = s("parry_cd", 0.9)
+		state = State.PARRY
+		GameState.play_sfx("click")
+		GameState.spawn_spark(global_position)
+	if Input.is_action_just_pressed("dash") and dash_cd <= 0.0 and GameState.abilities.has("dash"):
+		velocity.x = facing * s("dash_speed", 520.0)
+		velocity.y = 0.0
+		dash_cd = s("dash_cd", 0.8)
+		iframes = max(iframes, 0.18)
+		state = State.DASH
+		GameState.play_sfx("click")
+	if Input.is_action_just_pressed("attack") and attack_timer <= 0.0:
+		attack_timer = s("attack_cd", 0.38)
+		attack_hit = false
+		state = State.ATTACK
+		GameState.play_sfx("hit")
+	if jump_buffer > 0.0 and coyote > 0.0 and state != State.DASH:
+		velocity.y = s("jump", -420.0)
+		coyote = 0.0
+		jump_buffer = 0.0
+	if state != State.DASH and state != State.ATTACK:
+		var dir: float = Input.get_axis("move_left", "move_right")
+		if abs(dir) > 0.01:
+			facing = sign(dir)
+			velocity.x = dir * s("speed", 260.0)
+			if visual is Node2D:
+				(visual as Node2D).scale = Vector2(2.2 * facing, 2.2)
+		else:
+			velocity.x = move_toward(velocity.x, 0.0, 1800.0 * delta)
+		if not is_on_floor():
+			velocity.y += grav * delta
+			state = State.JUMP if velocity.y < 0.0 else State.FALL
+		else:
+			state = State.RUN if abs(velocity.x) > 10.0 else State.IDLE
+	elif state == State.DASH:
+		velocity.y = 0.0
+		if dash_cd < s("dash_cd", 0.8) - 0.16:
+			state = State.FALL if not is_on_floor() else State.IDLE
+	move_and_slide()
+	if iframes > 0.0 and visual is CanvasItem:
+		(visual as CanvasItem).modulate = Color(1, 1, 1, 0.45)
+	elif visual is CanvasItem:
+		(visual as CanvasItem).modulate = Color(1, 1, 1, 1)
+
+## Attack hitbox probe — hits hostiles in range once per swing.
+func _try_hit() -> void:
+	if attack_hit:
+		return
+	var reach: float = s("attack_range", 34.0)
+	for h in get_tree().get_nodes_in_group("hostile"):
+		if h is Node2D and is_instance_valid(h):
+			var d: float = global_position.distance_to((h as Node2D).global_position)
+			var to_h: Vector2 = (h as Node2D).global_position - global_position
+			if d < reach and sign(to_h.x) == facing:
+				if h.has_method("take_hit"):
+					h.take_hit(int(s("attack_damage", 12.0)), global_position)
+					attack_hit = true
+					return
+
+func take_damage(amount: int, from: Vector2) -> void:
+	if iframes > 0.0 or parry_window > 0.0 or dead:
+		if parry_window > 0.0:
+			_parry_success(from)
+		return
+	GameState.health = max(GameState.health - amount, 0)
+	GameState.play_sfx("hit")
+	GameState.spawn_spark(global_position)
+	if camera_rig and camera_rig.has_method("shake"):
+		camera_rig.shake(6.0)
+	var knock: Vector2 = (global_position - from).normalized() * 240.0
+	velocity = knock
+	velocity.y = -180.0
+	iframes = s("iframes", 0.8)
+	state = State.HURT
+	if GameState.health <= 0:
+		_die()
+
+func _parry_success(_from: Vector2) -> void:
+	parry_window = 0.0
+	parry_cd = 0.35
+	GameState.play_sfx("pickup")
+	GameState.spawn_spark(global_position)
+	GameState.emit_parry()
+
+func _die() -> void:
+	dead = true
+	state = State.DEAD
+	GameState.on_player_death()
+
+func respawn(pos: Vector2) -> void:
+	dead = false
+	global_position = pos
+	velocity = Vector2.ZERO
+	GameState.health = GameState.max_health
+	iframes = 1.2
+	state = State.IDLE
+`;
+}
+
+/** Camera rig — smooth follow + room limits + shake + cinematic zoom (§8). */
+export function mvCameraScript(): string {
+  return `extends Camera2D
+# Context-aware camera: follow, shake on impact, cinematic zoom for boss
+# introductions. Limits are set by the room loader each transition.
+
+var shake_amount := 0.0
+var target_zoom := Vector2(1, 1)
+
+func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
+func shake(amount: float) -> void:
+	shake_amount = max(shake_amount, amount)
+
+func cinematic_zoom(z: float) -> void:
+	target_zoom = Vector2(z, z)
+
+func _process(delta: float) -> void:
+	if shake_amount > 0.01:
+		offset = Vector2(randf_range(-shake_amount, shake_amount), randf_range(-shake_amount, shake_amount))
+		shake_amount = move_toward(shake_amount, 0.0, 24.0 * delta)
+	else:
+		offset = Vector2.ZERO
+	zoom = zoom.lerp(target_zoom, 3.0 * delta)
+`;
+}

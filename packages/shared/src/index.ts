@@ -12,6 +12,7 @@ export const Platforms = z.enum([
 export type PlatformId = z.infer<typeof Platforms>;
 
 export const Dimensions = z.enum(["2d", "3d", "2.5d", "hybrid"]);
+const DimensionsDecls = Dimensions;
 export type Dimension = z.infer<typeof Dimensions>;
 
 /** Quality tiers used to calibrate scope, systems and perf budgets. */

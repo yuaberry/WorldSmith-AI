@@ -20,7 +20,7 @@ export const GamePlan = z.object({
   dimensions: z.enum(["2d", "3d", "2.5d", "hybrid"]),
   qualityTier: z.enum(["ps2-era", "indie", "aa", "aaa", "mobile-2d"]),
   engine: z.enum(["godot4", "unreal5", "unity", "custom"]),
-  flavor: z.enum(["topdown", "platformer", "3d", "fps", "turnbattle"]),
+  flavor: z.enum(["topdown", "platformer", "3d", "fps", "turnbattle", "metroidvania"]),
   platforms: z.array(z.string()).min(1),
   genreTags: z.array(z.string()).default([]),
   coreLoop: z.string().min(20),
@@ -52,11 +52,13 @@ function recommendEngine(dim: string, tier: string, requested?: EngineId): { eng
 
 function pickFlavor(dim: string, archetype: GenreArchetype | undefined, idea: string): GamePlan["flavor"] {
   const t = idea.toLowerCase();
+  const mv = t.includes("metroidvan") || t.includes("metroidvania") || (archetype?.id === "metroidvania" && (t.includes("interconnect") || t.includes("backtrack") || t.includes("ability") || t.includes("habilidade")));
+  if (mv) return "metroidvania";
   if (dim === "3d" || dim === "hybrid") {
     if (t.includes("shooter") || t.includes("fps") || archetype?.id === "fps-multiplayer") return "fps";
     return "3d";
   }
-  if (t.includes("platform") || archetype?.id === "metroidvania" || archetype?.id === "precision-platformer") return "platformer";
+  if (t.includes("platform") || archetype?.id === "precision-platformer") return "platformer";
   if (archetype?.id === "jrpg-narrative") return "turnbattle";
   return "topdown";
 }
@@ -147,7 +149,7 @@ Produce the prototype plan for the FIRST MILESTONE: a playable vertical slice th
 }
 
 Rules:
-- "flavor" selects the starter template: topdown | platformer | 3d | fps | turnbattle (2D games must use topdown/platformer/turnbattle).
+- "flavor" selects the starter template: metroidvania | topdown | platformer | 3d | fps | turnbattle. Use "metroidvania" for interconnected-map, ability-gate, backtracking, boss, checkpoint, dialogue requests even in "2.5D" (2.5D ⇒ metroidvania unless clearly 3D). 2D games must use metroidvania/topdown/platformer/turnbattle.
 - "engine": godot4 unless the user demands heavy 3D/AAA (then unreal5).
 - "systems" 4-8 for the slice; "tasks" 4-8 with dependsOn as the index of an earlier task (-1 = none).
 - Tasks must be concrete code/UI/validation work — no vague "make it fun".

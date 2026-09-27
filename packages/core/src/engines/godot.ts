@@ -17,6 +17,7 @@ import { getSetting } from "../settings";
 import { topdownFiles } from "./templates/godot_topdown";
 import { platformerFiles } from "./templates/godot_platformer";
 import { threeDFiles } from "./templates/godot_3d";
+import { metroidvaniaFiles } from "./templates/godot_metroidvania";
 
 const exec = promisify(execFile);
 
@@ -82,7 +83,8 @@ export class Godot4Adapter implements EngineAdapter {
 
   async createProject(wsPath: string, spec: GameSpec): Promise<ScaffoldResult> {
     const files =
-      spec.flavor === "platformer" ? platformerFiles(spec)
+      spec.flavor === "metroidvania" ? metroidvaniaFiles(spec)
+      : spec.flavor === "platformer" ? platformerFiles(spec)
       : spec.flavor === "3d" || spec.flavor === "fps" ? threeDFiles(spec)
       : topdownFiles(spec);
 

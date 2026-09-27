@@ -275,12 +275,90 @@ export function paintGlow(pal: ForgePalette, size = 32, frame = 0): Uint8Array {
   return p.png();
 }
 
-export const SPRITE_SLOTS = ["player", "enemy", "shard", "tile_ground", "tile_wall", "sky", "glow"] as const;
+/** Boss sprite (24x24, 3-frame menacing hover). */
+export function paintBoss(pal: ForgePalette, size = 24, frame = 0): Uint8Array {
+  const p = new Px(size, size);
+  const body = shade(hexRGB(pal.accent), 0.55);
+  const robe: RGB = [90, 66, 130];
+  const dark: RGB = [50, 36, 72];
+  const outline: RGB = [12, 8, 20];
+  const eye: RGB = [255, 236, 130];
+  const cx = size / 2;
+  const hover = [0, -1, 1][frame % 3] ?? 0;
+  p.circle(Math.floor(cx), 13 + hover, 8, robe);
+  p.circle(Math.floor(cx), 16 + hover, 5, dark);
+  p.rect(6, 10 + hover, 12, 2, shade(robe, 1.25));
+  p.set(Math.floor(cx) - 3, 9 + hover, eye);
+  p.set(Math.floor(cx) + 3, 9 + hover, eye);
+  p.line(8, 6 + hover, 6, 2 + hover, [160, 130, 220]);
+  p.line(16, 6 + hover, 18, 2 + hover, [160, 130, 220]);
+  const snapshot = new Uint8Array(p.data);
+  const has = (x: number, y: number) => x >= 0 && y >= 0 && x < size && y < size && (snapshot[(y * size + x) * 4 + 3] ?? 0) > 0;
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    if (!has(x, y) && (has(x + 1, y) || has(x - 1, y) || has(x, y + 1) || has(x, y - 1))) p.set(x, y, outline);
+  }
+  return p.png();
+}
+
+/** NPC (robed keeper, 16x16, 2-frame sway). */
+export function paintNpc(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
+  const p = new Px(size, size);
+  const robe: RGB = [96, 120, 104];
+  const dark = shade(robe, 0.6);
+  const hood: RGB = [70, 92, 80];
+  const outline: RGB = [10, 14, 12];
+  const sway = frame % 2 === 0 ? 0 : 1;
+  p.rect(4 + sway, 6, 8, 9, robe);
+  p.rect(5 + sway, 7, 6, 7, dark);
+  p.rect(4 + sway, 4, 8, 4, hood);
+  p.set(6 + sway, 6, [220, 230, 210]);
+  p.set(9 + sway, 6, [220, 230, 210]);
+  const snapshot = new Uint8Array(p.data);
+  const has = (x: number, y: number) => x >= 0 && y >= 0 && x < size && y < size && (snapshot[(y * size + x) * 4 + 3] ?? 0) > 0;
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    if (!has(x, y) && (has(x + 1, y) || has(x - 1, y) || has(x, y + 1) || has(x, y - 1))) p.set(x, y, outline);
+  }
+  return p.png();
+}
+
+/** Checkpoint bonfire (16x16, 3-frame flame). */
+export function paintCheckpoint(pal: ForgePalette, size = 16, frame = 0): Uint8Array {
+  const p = new Px(size, size);
+  const stone: RGB = [88, 92, 110];
+  const flame = [255, 150, 60];
+  const flameHot: RGB = [255, 220, 120];
+  p.rect(4, 13, 8, 2, stone);
+  p.rect(5, 12, 6, 1, shade(stone, 0.7));
+  const h = [7, 8, 6][frame % 3] ?? 7;
+  for (let y = 0; y < h; y++) {
+    const w = Math.max(1, 6 - Math.floor(y * 0.8));
+    p.rect(Math.floor(size / 2 - w / 2), 12 - y, w, 1, y > h - 3 ? flameHot : flame as RGB);
+  }
+  return p.png();
+}
+
+/** Ability pickup orb (14x14, 2-frame pulse). */
+export function paintPickup(pal: ForgePalette, size = 14, frame = 0): Uint8Array {
+  const p = new Px(size, size);
+  const core = hexRGB("#22d3ee");
+  const halo = shade(core, 0.55);
+  const r = frame % 2 === 0 ? 5 : 6;
+  p.circle(Math.floor(size / 2), Math.floor(size / 2), r, halo as RGB);
+  p.circle(Math.floor(size / 2), Math.floor(size / 2), r - 2, core);
+  p.set(Math.floor(size / 2) - 1, Math.floor(size / 2) - 1, [240, 255, 255]);
+  return p.png();
+}
+
+export const SPRITE_SLOTS = ["player", "enemy", "boss", "npc", "checkpoint", "pickup", "shard", "tile_ground", "tile_wall", "sky", "glow"] as const;
 export type SpriteSlot = (typeof SPRITE_SLOTS)[number];
 
 export const ANIM_SPECS: Array<{ base: string; frames: number }> = [
   { base: "player", frames: 4 },   // walk cycle
   { base: "enemy", frames: 3 },    // squash/hover
+  { base: "boss", frames: 3 },     // menacing hover
+  { base: "npc", frames: 2 },      // robed sway
+  { base: "checkpoint", frames: 3 }, // bonfire flame
+  { base: "pickup", frames: 2 },   // orb pulse
   { base: "shard", frames: 4 },    // pulse + sparkle
   { base: "glow", frames: 3 },     // beat pulse
 ];
@@ -296,6 +374,10 @@ export function forgeDefaultSprites(pal: ForgePalette): Record<string, Uint8Arra
       const bytes =
         base === "player" ? paintHero(pal, 16, f)
         : base === "enemy" ? paintCreature(pal, 16, f)
+        : base === "boss" ? paintBoss(pal, 24, f)
+        : base === "npc" ? paintNpc(pal, 16, f)
+        : base === "checkpoint" ? paintCheckpoint(pal, 16, f)
+        : base === "pickup" ? paintPickup(pal, 14, f)
         : base === "shard" ? paintShard(pal, 12, f)
         : paintGlow(pal, 32, f);
       out[`assets/sprites/${base}_${f}.png`] = bytes;
@@ -315,6 +397,10 @@ export function slotPrompt(slot: SpriteSlot, gameTitle: string, idea: string): s
   switch (slot) {
     case "player": return `${base} A small hero adventurer character from a 3/4 top-down view, standing pose, holding a glowing weapon.`;
     case "enemy": return `${base} A menacing small monster creature from a 3/4 top-down view, ready to attack.`;
+    case "boss": return `${base} A towering dark-fantasy boss silhouette with glowing eyes and a horned crown, imposing.`;
+    case "npc": return `${base} A hooded mysterious keeper NPC standing still, side view.`;
+    case "checkpoint": return `${base} A stone bonfire save point with warm flame.`;
+    case "pickup": return `${base} A glowing cyan ability orb with radiant halo.`;
     case "shard": return `${base} A glowing crystal shard collectible, radiant gemstone.`;
     case "tile_ground": return `${base} A seamless dark stone ground tile texture, top-down.`;
     case "tile_wall": return `${base} A seamless dark stone brick wall tile texture, top-down.`;

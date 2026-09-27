@@ -3,7 +3,7 @@
  * Serves the REST API, the live event stream (WS) and the built UI (static).
  */
 import { join, dirname } from "node:path";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, mkdirSync, writeFileSync } from "node:fs";
 import type { ForgeStage, GameBrief } from "@nexus/shared";
 import { bus } from "./events";
 import { bus as eventBus } from "./events";
@@ -329,6 +329,49 @@ async function handleApi(req: Request, path: string, url: URL): Promise<Response
         bus.emit({ projectId: p.id, agent: "art-director", stage: "assets", level: "success", message: `Sprite procedural "${slot}" restaurado.` });
       }
       return json({ ok: true });
+    }
+    if (req.method === "POST" && parts[3] === "change") {
+      // CHANGE ENGINE (§20): targeted, data-driven edits — no full regen.
+      const b = await body<{ command?: string }>(req).catch(() => ({}) as { command?: string });
+      const command = (b.command ?? "").trim();
+      if (command.length < 4) return json({ error: "command too short" }, 400);
+      const c = command.toLowerCase();
+      const applied: string[] = [];
+      const playerPath = pathJoin(p.data_path, "data", "player.json");
+      let player: Record<string, number> = {};
+      try { player = JSON.parse(readFileSync(playerPath, "utf8")) as Record<string, number>; } catch { player = {}; }
+      const mut = (key: string, f: (v: number) => number) => {
+        player[key] = Math.round(f(player[key] ?? 260) * 100) / 100;
+        applied.push(`player.${key} -> ${player[key]}`);
+      };
+      const wants = (t: string) => c.includes(t);
+      if ((wants("personagem") || wants("player") || wants("caractere") || wants("herói") || wants("heroi") || wants("veloc")) && (wants("rápid") || wants("rapid") || wants("faster") || wants("speed up"))) {
+        mut("speed", (v) => v * 1.2);
+      } else if ((wants("personagem") || wants("player") || wants("veloc")) && (wants("lent") || wants("slower"))) {
+        mut("speed", (v) => v * 0.8);
+      } else if (wants("parry") && (wants("janela") || wants("window") || wants("maior") || wants("longer"))) {
+        mut("parry_window", (v) => v + 0.06);
+      } else if ((wants("dano") || wants("damage")) && (wants("maior") || wants("more") || wants("+"))) {
+        mut("attack_damage", (v) => v + 4);
+      } else if ((wants("pulo") || wants("jump") || wants("salto")) && (wants("alto") || wants("higher"))) {
+        mut("jump", (v) => v * 0.9);
+      }
+      if (applied.length > 0) {
+        mkdirSync(pathJoin(p.data_path, "data"), { recursive: true });
+        writeFileSync(playerPath, JSON.stringify(player, null, 2));
+        bus.emit({ projectId: p.id, agent: "change-engine", stage: "change", level: "success", message: `Mudança aplicada (data-driven): ${applied.join("; ")}. Reexporte o preview para ver.` });
+        return json({ ok: true, applied, mode: "data-edit" });
+      }
+      // fallback: create a targeted coder task (incremental, not full regen)
+      const { insertTasks } = await import("./orchestrator/store.js" as never) as never;
+      const t = (insertTasks as (pid: string, tasks: Array<{ title: string; description: string; type?: string; risk?: string }>) => unknown)(p.id, [{
+        title: "Mudança solicitada pelo usuário",
+        description: command,
+        type: "code",
+        risk: "medium",
+      }]);
+      bus.emit({ projectId: p.id, agent: "change-engine", stage: "change", level: "info", message: `Comando classificado como tarefa incremental: "${command.slice(0, 80)}" — execute o pipeline para aplicá-la.` });
+      return json({ ok: true, mode: "task", taskId: Array.isArray(t) ? (t[0] as { id?: string })?.id ?? null : null });
     }
     if (req.method === "GET" && parts[3] === "builds") {
       return json({ builds: listBuilds(p.slug) });
