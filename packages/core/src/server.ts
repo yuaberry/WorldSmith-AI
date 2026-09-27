@@ -23,6 +23,8 @@ import { ensureExportTemplates, exportWeb, templatesInstalled, templatesTargetDi
 import { generateStoreKit } from "./publish/storeKit";
 import { SPRITE_SLOTS, forgeDefaultSprites, type SpriteSlot } from "./assets/spriteForge";
 import { aiSprite } from "./assets/aiSprites";
+import { deriveBible, ArtBible } from "./assets/artBible";
+import { rethemeAssets } from "./assets/retheme";
 import { buildExecutable, listBuilds, buildsDir } from "./publish/builds";
 import { Godot4Adapter } from "./engines/godot";
 import { join as pathJoin } from "node:path";
@@ -356,6 +358,48 @@ async function handleApi(req: Request, path: string, url: URL): Promise<Response
       } else if ((wants("pulo") || wants("jump") || wants("salto")) && (wants("alto") || wants("higher"))) {
         mut("jump", (v) => v * 0.9);
       }
+      // ART DIRECTION CHANGE ENGINE (§19): mutate the Art Bible, then
+      // regenerate ONLY the asset layer — gameplay/data untouched.
+      const biblePath = pathJoin(p.data_path, "data", "art_bible.json");
+      if (existsSync(biblePath)) {
+        let bible: ArtBible | null = null;
+        try { bible = JSON.parse(readFileSync(biblePath, "utf8")); } catch { bible = null; }
+        if (!bible) {
+          try { bible = deriveBible({ title: p.name, idea: p.idea }); } catch { bible = null; }
+        }
+        if (bible) {
+          const bt = (bible as { palette: Record<string, string> }).palette;
+          const idents = (bible as { identities: Record<string, { colors: { main: string; trim: string } }> }).identities;
+          const lighting = (bible as { lighting: { ambient: string } }).lighting;
+          let artChanged = false;
+          if (wants("escuro") || wants("darker") || wants("sombri")) {
+            for (const k of Object.keys(bt)) bt[k] = _darkenHex(bt[k] ?? "#000000", 0.75);
+            lighting.ambient = _darkenHex(lighting.ambient, 0.75);
+            artChanged = true;
+          }
+          if (wants("cyberpunk") || wants("neon")) {
+            bt.primary = "#12e6ff"; bt.secondary = "#ff2ea6"; bt.accent = "#22d3ee"; bt.danger = "#ff5577"; bt.highlight = "#a7f3ff";
+            (bible as { style: string }).style = "stylized";
+            artChanged = true;
+          }
+          if (wants("hand-painted") || wants("aquarela") || wants("pintura")) {
+            (bible as { style: string }).style = "painterly";
+            artChanged = true;
+          }
+          if ((wants("capa") || wants("coat") || wants("manto")) && (wants("vermelh") || wants("red")) && idents.protagonist) {
+            idents.protagonist.colors.main = "#c8384a";
+            idents.protagonist.colors.trim = "#f0d0a0";
+            artChanged = true;
+          }
+          if (artChanged) {
+            mkdirSync(pathJoin(p.data_path, "data"), { recursive: true });
+            writeFileSync(biblePath, JSON.stringify(bible, null, 2));
+            const regenCount = rethemeAssets(p.data_path, bible as never);
+            bus.emit({ projectId: p.id, agent: "change-engine", stage: "change", level: "success", message: `Art Bible atualizada — ${regenCount} assets regenerados com a nova direção (gameplay intacto). Reexporte o preview.` });
+            return json({ ok: true, mode: "art-retheme", regenerated: regenCount });
+          }
+        }
+      }
       if (applied.length > 0) {
         mkdirSync(pathJoin(p.data_path, "data"), { recursive: true });
         writeFileSync(playerPath, JSON.stringify(player, null, 2));
@@ -572,3 +616,10 @@ export async function startServer(): Promise<void> {
 }
 
 void dirname;
+
+function _darkenHex(hex: string, f: number): string {
+  const h = hex.replace("#", "");
+  if (h.length !== 6) return hex;
+  const n = [0, 2, 4].map((i) => Math.max(0, Math.min(255, Math.round(parseInt(h.slice(i, i + 2), 16) * f))));
+  return "#" + n.map((v) => v.toString(16).padStart(2, "0")).join("");
+}

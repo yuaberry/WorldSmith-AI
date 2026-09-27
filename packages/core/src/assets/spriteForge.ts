@@ -64,9 +64,9 @@ export function encodePNG(w: number, h: number, rgba: Uint8Array): Uint8Array {
 
 // ── Pixel canvas + painters ──────────────────────────────────────────────────
 
-type RGB = [number, number, number];
+export type RGB = [number, number, number];
 
-class Px {
+export class Px {
   data: Uint8Array;
   constructor(public w: number, public h: number) { this.data = new Uint8Array(w * h * 4); }
   set(x: number, y: number, c: RGB, a = 255) {

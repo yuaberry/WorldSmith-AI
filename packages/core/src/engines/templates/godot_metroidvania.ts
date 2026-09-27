@@ -16,6 +16,10 @@ import { mvEnemyScript, mvBossScript, mvNpcScript } from "../systems/mv_entities
 import { mvGameStateScript, mvMainScript, mvCheckpointScript, mvPickupScript } from "../systems/mv_world";
 import { mvHudScript, mvMenuScript, mvMapScript } from "../systems/mv_ui";
 import { WEB_EXPORT_PRESET } from "../godotExport";
+import { deriveBible, bibleToMarkdown, type ArtBible } from "../../assets/artBible";
+import { forgeMaterials } from "../../assets/materials";
+import { validateAssets, type AssetExpectation } from "../../assets/validate";
+import { buildManifest } from "../../assets/manifest";
 
 export function metroidvaniaFiles(spec: GameSpec): Record<string, string | Uint8Array> {
   const pal = { accent: spec.palette.accent, bg: spec.palette.bg };
@@ -91,6 +95,34 @@ window/stretch/aspect="keep"
 renderer/rendering_method="gl_compatibility"
 `;
 
+  const bible: ArtBible = deriveBible({ title: spec.title, idea: spec.shortDescription });
+  const biblePal = { accent: bible.identities.protagonist.colors.main, bg: bible.palette.bg };
+  const sprites = forgeDefaultSprites(biblePal);
+  const materials = forgeMaterials(bible.environment.materials, biblePal);
+
+  // §13 — technical validation BEFORE assets enter the game
+  const expectations: AssetExpectation[] = [
+    ...Object.keys(sprites).map((path) => ({
+      path,
+      minDim: path.includes("sky") ? 100 : 8,
+      maxDim: path.includes("sky") ? 512 : 64,
+      requireAlpha: !["sky", "tile_wall", "tile_ground"].some((n) => path.includes(n)),
+    })),
+    ...Object.keys(materials).map((path) => ({ path, minDim: 32, maxDim: 32, requireAlpha: false })),
+  ];
+  const report = validateAssets({ ...sprites, ...materials }, expectations);
+  if (!report.pass) {
+    throw new Error(`Asset validation FAILED (§13):\n${report.issues.join("\n")}`);
+  }
+
+  // §12 — manifest: the engine knows which assets belong to which systems
+  const manifestEntries = buildManifest({
+    sprites: { ...sprites, ...materials },
+    bibleStyle: bible.style,
+    materials: bible.environment.materials,
+    report,
+  });
+
   return {
     "project.godot": mvProjectGodot,
     ".gitignore": godotIgnore(),
@@ -129,13 +161,29 @@ renderer/rendering_method="gl_compatibility"
     "data/abilities.json": JSON.stringify(abilitiesData, null, 2),
     "data/dialogue.json": JSON.stringify(dialogueData, null, 2),
 
-    // assets: sprites (animated) + audio (synth) + hud fallback
-    ...Object.fromEntries(Object.entries(forgeDefaultSprites(pal))),
+    // assets: sprites (animated, bible-driven) + audio (synth) + hud fallback
+    ...Object.fromEntries(Object.entries(sprites)),
     "audio/pickup.wav": sfxPickup(),
     "audio/hit.wav": sfxHit(),
     "audio/click.wav": sfxClick(),
     "scripts/ui/hud_fallback.gd": hudScript(spec),
 
+    // ART BIBLE (§1) — persistent artifact; every asset references it
+    "data/art_bible.json": JSON.stringify(bible, null, 2),
+    "docs/art-bible.md": bibleToMarkdown(bible, spec.title),
+    // ASSET MANIFEST (§12) — registration of every asset + QA status
+    "data/asset_manifest.json": JSON.stringify(
+      {
+        version: 1,
+        style: bible.style,
+        validation: { pass: report.pass, issues: report.issues, warnings: report.warnings, checked: report.checked },
+        assets: manifestEntries,
+      },
+      null,
+      2,
+    ),
+    // MATERIALS (§7) — semantic textures selected by the bible biome
+    ...Object.fromEntries(Object.entries(materials)),
     // docs
     "docs/game-specification.md": specToMarkdown(fullSpec),
     "docs/README.md": `# ${spec.title}\n\n${spec.shortDescription}\n\n## Controles\n- Mover: WASD/setas · Saltar: ESPAÇO · Atacar: J/X · **Parry: K/C** · Dash: L/Z (após desbloquear)\n- Interagir: E · Mapa: TAB · Pausa: ESC\n- **Gamepad suportado** (analógico move; A/B/X/Y mapeados)\n\n## O loop do slice\nExplore o Claustro → fale com o Guardião → atravesse a Galeria (oeste) → pegue o DASH →\nabra a Capela (leste) → ative a fogueira → enfrente **O Soberano Oco** (parry no tempo certo!).\n\n## Sistemas\nFSM de inimigos, parry com stagger, i-frames, knockback, checkpoints com save versionado,\ndiálogo com escolhas, mapa por descoberta, chuva + parallax 2.5D, chefe com fases e intro cinematográfica.\n`,
