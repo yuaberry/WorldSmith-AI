@@ -54,7 +54,7 @@ async function handleApi(req: Request, path: string, url: URL): Promise<Response
     const engines = await detectEngines();
     return json({
       app: "WorldSmith AI",
-      version: "0.10.0",
+      version: "0.10.1",
       aiConfigured: aiConfigured(),
       engines,
       uiBuilt: existsSync(join(UI_DIST, "index.html")),

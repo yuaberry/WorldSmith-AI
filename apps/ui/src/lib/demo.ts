@@ -25,21 +25,32 @@ let data: DemoBundle | null = null;
 
 export function isDemo(): boolean { return demo; }
 
-/** Detect: try the real backend first; fall back to the snapshot honestly. */
+/** Detect: try the real backend first; fall back to the snapshot honestly.
+ *  NEVER throws — boot must always complete (hardened after the v0.10.0 bug:
+ *  any rejection here left the studio stuck on "booting worldsmith…" forever). */
 export async function initDemo(): Promise<boolean> {
+  // 1) live backend probe (fast-fail: 2.5s)
   try {
     const res = await fetch("api/status", { signal: AbortSignal.timeout(2500) });
     if (res.ok) {
-      const j = (await res.json()) as { app?: string };
+      const j = (await res.json().catch(() => null)) as { app?: string } | null;
       if (j?.app) return false; // live backend
     }
   } catch { /* no backend here */ }
-  const res = await fetch("demo-data.json");
-  if (!res.ok) return false; // neither backend nor snapshot (bare static)
-  data = (await res.json()) as DemoBundle;
-  installIntercept(data);
-  demo = true;
-  return true;
+  // 2) web-demo snapshot — fully protected: ANY failure degrades to an honest
+  //    empty studio (topbar OFFLINE), never an eternal spinner.
+  try {
+    const res = await fetch("demo-data.json", { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return false;
+    const bundle = (await res.json()) as DemoBundle | null;
+    if (!bundle || !bundle.project?.id || !bundle.status) return false; // shape sanity
+    data = bundle;
+    installIntercept(bundle);
+    demo = true;
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 const DEMO_MUTATION_MSG =

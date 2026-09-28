@@ -90,7 +90,7 @@ function Sidebar() {
       </div>
       <div className="px-5 py-4 border-t border-edge text-[10px] text-faint leading-relaxed">
         Imagine. <span className="text-brand-soft">Direct.</span> Build.<br />
-        <span className="text-mute">{useStudio.getState().demo ? "v0.10.0 — Web Demo" : "v0.10.0 — Live Preview"}</span>
+        <span className="text-mute">{useStudio.getState().demo ? "v0.10.1 — Web Demo" : "v0.10.1 — Live Preview"}</span>
       </div>
     </aside>
   );
@@ -151,8 +151,17 @@ export default function App() {
 
   useEffect(() => {
     let t: ReturnType<typeof setInterval> | undefined;
+    // Watchdog: boot must ALWAYS complete. If anything pathological hangs the
+    // init (network black-hole, exotic browser API), the shell renders in
+    // offline mode after 12s instead of an eternal "booting…" screen.
+    const watchdog = setTimeout(() => setBooted(true), 12_000);
     void (async () => {
-      const isDemo = await initDemo();
+      let isDemo = false;
+      try {
+        isDemo = await initDemo();
+      } catch {
+        isDemo = false; // hardened: initDemo never throws, but belt-and-suspenders
+      }
       useStudio.setState({ demo: isDemo });
       if (!isDemo) {
         connect();
@@ -161,9 +170,10 @@ export default function App() {
       } else {
         void refreshStatus(); // served from the snapshot via fetch intercept
       }
+      clearTimeout(watchdog);
       setBooted(true);
     })();
-    return () => { if (t) clearInterval(t); };
+    return () => { if (t) clearInterval(t); clearTimeout(watchdog); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
