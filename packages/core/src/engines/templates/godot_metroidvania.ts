@@ -15,6 +15,8 @@ import { mvPlayerScript, mvCameraScript } from "../systems/mv_player";
 import { mvEnemyScript, mvBossScript, mvNpcScript } from "../systems/mv_entities";
 import { mvGameStateScript, mvMainScript, mvCheckpointScript, mvPickupScript } from "../systems/mv_world";
 import { mvHudScript, mvMenuScript, mvMapScript } from "../systems/mv_ui";
+import { mvMusicScript } from "../systems/mv_music";
+import { forgeSoundtrack } from "../../audio/musicForge";
 import { WEB_EXPORT_PRESET } from "../godotExport";
 import { deriveBible, bibleToMarkdown, type ArtBible } from "../../assets/artBible";
 import { forgeMaterials } from "../../assets/materials";
@@ -86,6 +88,7 @@ GameState="*res://scripts/core/game_state.gd"
 GameMenu="*res://scripts/core/game_menu.gd"
 HUD="*res://scripts/ui/hud.gd"
 MapScreen="*res://scripts/core/map_screen.gd"
+Music="*res://scripts/core/music.gd"
 
 [display]
 
@@ -163,6 +166,7 @@ renderer/rendering_method="gl_compatibility"
     "scripts/core/game_state.gd": mvGameStateScript(spec),
     "scripts/core/game_menu.gd": mvMenuScript(spec),
     "scripts/core/map_screen.gd": mvMapScript(),
+    "scripts/core/music.gd": mvMusicScript(),
     "scripts/player/player.gd": mvPlayerScript(spec),
     "scripts/player/camera_rig.gd": mvCameraScript(),
     "scripts/ai/enemy.gd": mvEnemyScript(),
@@ -181,6 +185,9 @@ renderer/rendering_method="gl_compatibility"
     "data/bosses.json": JSON.stringify(bossesData, null, 2),
     "data/abilities.json": JSON.stringify(abilitiesData, null, 2),
     "data/dialogue.json": JSON.stringify(dialogueData, null, 2),
+
+    // §11.7 — state-driven soundtrack (deterministic per project title)
+    ...forgeSoundtrack(spec.title),
 
     // assets: sprites (animated, bible-driven) + audio (synth) + hud fallback
     ...Object.fromEntries(Object.entries(sprites)),

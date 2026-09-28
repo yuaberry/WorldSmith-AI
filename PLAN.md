@@ -258,7 +258,7 @@ cd ~/.worldsmith/projects/hollow-echoes && \
 4. **Text-to-3D: image-to-mesh → GLTF → import → LOD/collision → manifest** (próximo marcos)
 5. Atlas packing + .import profiles reais por plataforma (tiers LOW→ULTRA)
 6. Genre packs: third-person action (lock-on), racing
-7. Geração de música por estado (explore/combat/boss)
+7. ~~Geração de música por estado~~ ✅ v0.11.0 (musicForge + Music autoload) 
 8. Tauri shell (desktop nativo; hoje o exe abre o navegador — aceitável, documentado)
 9. Melhorias no Estúdio Web: selecionar múltiplos projetos-snapshot, tour guiado, embed do site de cada jogo
 
@@ -303,3 +303,10 @@ _Atualizado em 2026-09-27 (v0.10.0 FINAL — WorldSmith AI: repo renomeado, bin�
 > **Invariável 24**: nenhum caminho de boot pode rejeitar ou travar — init deve ser all-try/catch + watchdog; spinner infinito é bug P1. Simular boot com happy-dom (boot-test.mjs) antes de publicar UI.
 > **Entrega**: v0.10.1 (binários + .deb reconstruídos; studio redeployado; bundle 1RKUAxDx).
 _v0.10.1 HOTFIX — boot blindado; release com 4 artefatos; ver §3-S3-O._
+
+### S3-P — §11.7 ENTREGUE: música procedural por estado (v0.11.0)
+> Continuação da produção após o hotfix de boot (S3-O).
+> **Resultado**: `audio/musicForge.ts` — compositor chiptune determinístico por projeto (seed=slug do título): EXPLORE 85bpm (pad calmo+pentatônica+sparse drums), COMBAT 140bpm (baixo em colcheias+arpejos 16ths+groove), BOSS 150bpm (frígio+trítonos+double kick) — PCM16 mono 22050Hz, 8 compassos, loops seamless; **mastering por RMS-alvo** (explore mais calmo que combat/boss por construção — peak-normalize achataria a dinâmica, medido). `mv_music.ts` → autoload Music que ESCANEIA hostiles (grupos boss/hostile + get("state")) — zero edições nos FSMs; crossfade 0.9s; volume −11/−8/−7 dB; loop via AudioStreamWAV.loop_mode runtime (sem .import cirúrgico).
+> **Testes**: 6 novos (RIFF/duração/determinismo/energia/seam-safe/paths) → suíte 34 testes / 229 asserts verdes; E2E: validate PASS com autoload+3 WAVs, 0 erros engine.
+> **Lição (invariável 25)**: normalização de pico achata dinâmica entre faixas — loudness relativa = RMS-alvo por estado; e o bug do `wav()` sem a linha `setUint32(40,…)` (header data=0, PCM presente) prova que TODO writer novo precisa de teste de header campo-a-campo.
+_v0.11.0 — música procedural por estado (§11.7) entregue; boot blindado (v0.10.1)._
