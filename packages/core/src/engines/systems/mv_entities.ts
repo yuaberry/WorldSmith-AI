@@ -25,6 +25,9 @@ var aggro_range := 260.0
 var patrol_dir := 1.0
 var state_t := 0.0
 var home_x := 0.0
+var mode := "chaser"   # §15 enemy variety: chaser | turret | flyer (data-driven)
+var home := Vector2.ZERO
+var hover_t := 0.0
 
 func _ready() -> void:
 	add_to_group("hostile")
@@ -40,6 +43,8 @@ func _ready() -> void:
 	telegraph_time = float(d.get("telegraph", 0.45))
 	attack_range = float(d.get("range", 34.0))
 	aggro_range = float(d.get("aggro", 260.0))
+	mode = String(d.get("mode", "chaser"))
+	home = global_position
 	home_x = global_position.x
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
@@ -81,50 +86,118 @@ func _physics_process(delta: float) -> void:
 	target = players[0] if players.size() > 0 else null
 	match state:
 		E.IDLE, E.PATROL:
-			velocity.y += 900.0 * delta
-			velocity.x = patrol_dir * speed * 0.45
-			if global_position.x > home_x + 90.0:
-				patrol_dir = -1.0
-			elif global_position.x < home_x - 90.0:
-				patrol_dir = 1.0
-			if target and is_instance_valid(target):
-				if global_position.distance_to(target.global_position) < aggro_range:
-					state = E.CHASE
-			move_and_slide()
+			if mode == "flyer":
+				# §15 wisps: gravity-free sine hover around home; dive when provoked
+				hover_t += delta
+				global_position = home + Vector2(sin(hover_t * 0.9) * 42.0, sin(hover_t * 2.2) * 24.0)
+				if target and is_instance_valid(target):
+					if global_position.distance_to(target.global_position) < aggro_range:
+						state = E.CHASE
+						hover_t = 0.0
+			elif mode == "turret":
+				velocity = Vector2.ZERO
+				if visual is CanvasItem and state == E.IDLE:
+					(visual as CanvasItem).modulate = Color(1, 1, 1)
+				if target and is_instance_valid(target):
+					if global_position.distance_to(target.global_position) < aggro_range:
+						state = E.TELEGRAPH
+						state_t = telegraph_time
+				move_and_slide()
+			else:
+				velocity.y += 900.0 * delta
+				velocity.x = patrol_dir * speed * 0.45
+				if global_position.x > home_x + 90.0:
+					patrol_dir = -1.0
+				elif global_position.x < home_x - 90.0:
+					patrol_dir = 1.0
+				if target and is_instance_valid(target):
+					if global_position.distance_to(target.global_position) < aggro_range:
+						state = E.CHASE
+				move_and_slide()
 		E.CHASE:
-			velocity.y += 900.0 * delta
-			if target and is_instance_valid(target):
-				var d: float = global_position.distance_to(target.global_position)
-				if d < attack_range:
-					state = E.TELEGRAPH
-					state_t = telegraph_time
-					velocity.x = 0.0
-				else:
-					velocity.x = sign(target.global_position.x - global_position.x) * speed
-			move_and_slide()
+			if mode == "flyer":
+				# dive straight at the player — commits, then recovers home
+				hover_t += delta
+				if target and is_instance_valid(target):
+					var to_p: Vector2 = target.global_position - global_position
+					if to_p.length() < attack_range:
+						state = E.TELEGRAPH
+						state_t = 0.12
+					elif hover_t < 2.2:
+						global_position += to_p.normalized() * speed * delta
+					else:
+						state = E.IDLE
+						hover_t = 0.0
+			else:
+				velocity.y += 900.0 * delta
+				if target and is_instance_valid(target):
+					var d: float = global_position.distance_to(target.global_position)
+					if d < attack_range:
+						state = E.TELEGRAPH
+						state_t = telegraph_time
+						velocity.x = 0.0
+					else:
+						velocity.x = sign(target.global_position.x - global_position.x) * speed
+				move_and_slide()
 		E.TELEGRAPH:
-			velocity.x = 0.0
-			velocity.y += 900.0 * delta
+			if mode != "flyer":
+				velocity.x = 0.0
+				velocity.y += 900.0 * delta
 			if visual is CanvasItem:
 				(visual as CanvasItem).modulate = Color(1.6, 0.8, 0.8)
 			if state_t <= 0.0:
 				state = E.ATTACK
 				state_t = 0.22
-			move_and_slide()
+				if mode == "turret":
+					_shoot()
+			if mode != "flyer":
+				move_and_slide()
 		E.ATTACK:
 			if visual is CanvasItem:
 				(visual as CanvasItem).modulate = Color(1, 1, 1)
-			if state_t > 0.0:
+			if state_t > 0.0 and mode != "turret":
 				if target and is_instance_valid(target):
 					if global_position.distance_to(target.global_position) < attack_range + 10.0:
 						target.take_damage(damage, global_position)
-			state = E.CHASE
+			state = E.IDLE if mode == "turret" else E.CHASE
 		E.STAGGER:
 			velocity.x = 0.0
-			velocity.y += 900.0 * delta
+			if mode != "flyer":
+				velocity.y += 900.0 * delta
 			if state_t <= 0.0:
-				state = E.CHASE
-			move_and_slide()
+				state = E.CHASE if mode != "turret" else E.IDLE
+			if mode != "flyer":
+				move_and_slide()
+
+## §15 turret payload: an arcane bolt (tween-driven Area2D, glow sprite).
+func _shoot() -> void:
+	GameState.play_sfx("click")
+	var p := Area2D.new()
+	var s := CollisionShape2D.new()
+	var c := CircleShape2D.new()
+	c.radius = 7.0
+	s.shape = c
+	p.add_child(s)
+	var spr := Sprite2D.new()
+	var tex: Texture2D = GameState.tex("res://assets/sprites/glow.png")
+	if tex:
+		spr.texture = tex
+		spr.scale = Vector2(0.32, 0.32)
+	p.add_child(spr)
+	p.global_position = global_position
+	p.body_entered.connect(func(b):
+		if b and b.is_in_group("player"):
+			b.take_damage(damage, p.global_position)
+			p.queue_free()
+	)
+	get_tree().current_scene.add_child(p)
+	var dir: Vector2 = (target.global_position - global_position).normalized() if target and is_instance_valid(target) else Vector2(facing_dir(), 0.0)
+	var tw := p.create_tween()
+	tw.tween_property(p, "global_position", global_position + dir * 520.0, 1.6)
+	tw.tween_callback(p.queue_free)
+
+func facing_dir() -> float:
+	return sign(target.global_position.x - global_position.x) if target and is_instance_valid(target) else 1.0
 
 func take_hit(amount: int, from: Vector2) -> void:
 	if state == E.DEAD:
@@ -153,6 +226,9 @@ func _die() -> void:
 	state = E.DEAD
 	GameState.add_score(1)
 	GameState.play_sfx("pickup")
+	Feel.sparks(global_position, 22)  # §7 death burst
+	Feel.shake(3.5)
+	Feel.hitstop(0.07)
 	queue_free()
 `;
 }

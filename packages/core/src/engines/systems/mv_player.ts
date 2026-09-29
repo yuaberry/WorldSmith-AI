@@ -18,6 +18,8 @@ var visual: CanvasItem = null
 var camera_rig: Camera2D = null
 var facing := 1.0
 var coyote := 0.0
+var _prev_air := false   # §7 landing-dust tracking
+var _prev_vy := 0.0
 var jump_buffer := 0.0
 var iframes := 0.0
 var parry_window := 0.0
@@ -149,6 +151,12 @@ func _physics_process(delta: float) -> void:
 		if dash_cd < s("dash_cd", 0.8) - 0.16:
 			state = State.FALL if not is_on_floor() else State.IDLE
 	move_and_slide()
+	# §7 landing feel: dust puff when a real fall ends (not every frame on ground)
+	var just_landed := _prev_air and is_on_floor() and _prev_vy > 300.0
+	if just_landed:
+		Feel.dust(global_position + Vector2(0, 10.0))
+	_prev_air = not is_on_floor()
+	_prev_vy = velocity.y
 	if iframes > 0.0 and visual is CanvasItem:
 		(visual as CanvasItem).modulate = Color(1, 1, 1, 0.45)
 	elif visual is CanvasItem:
@@ -166,6 +174,7 @@ func _try_hit() -> void:
 			if d < reach and sign(to_h.x) == facing:
 				if h.has_method("take_hit"):
 					h.take_hit(int(s("attack_damage", 12.0)), global_position)
+					Feel.impact((h as Node2D).global_position, 2.5)  # §7 juice: hitstop + warm sparks
 					attack_hit = true
 					return
 
@@ -177,8 +186,7 @@ func take_damage(amount: int, from: Vector2) -> void:
 	GameState.health = max(GameState.health - amount, 0)
 	GameState.play_sfx("hit")
 	GameState.spawn_spark(global_position)
-	if camera_rig and camera_rig.has_method("shake"):
-		camera_rig.shake(6.0)
+	Feel.impact(global_position, 6.0, false)  # §7: hitstop + shake + cool sparks on player hurt
 	var knock: Vector2 = (global_position - from).normalized() * 240.0
 	velocity = knock
 	velocity.y = -180.0
@@ -249,6 +257,7 @@ var target_zoom := Vector2(1, 1)
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	add_to_group("camera")  # §7: the Feel director finds the camera by group
 
 func shake(amount: float) -> void:
 	shake_amount = max(shake_amount, amount)

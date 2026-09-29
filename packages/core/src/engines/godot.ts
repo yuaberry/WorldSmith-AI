@@ -143,6 +143,38 @@ export class Godot4Adapter implements EngineAdapter {
       }
     }
 
+    // §12 FUNCTIONAL QA (evidence-based conclusion): when the project ships
+    // the QA harness (qa/functional.gd), run it for real — gameplay probes
+    // (damage, save/load, transition, kill, ability grant) with an exit code.
+    // Smoke-run alone proves "it boots"; this proves "it works".
+    if (exitOk && issues.filter((i) => i.severity === "error").length === 0 && existsSync(join(wsPath, "qa", "functional.gd"))) {
+      try {
+        const r = await exec(bin, ["--headless", "--path", ".", "--quit-after", "900"], {
+          cwd: wsPath, timeout: 150_000, maxBuffer: 20_000_000,
+          env: { ...process.env, WORLDSMITH_QA: "1" },
+        });
+        log += `\n— functional QA —\n${r.stdout}`;
+        const lines = r.stdout.split("\n").filter((l) => l.includes("[QA]"));
+        const fails = lines.filter((l) => l.includes("FAIL"));
+        for (const f of fails) {
+          issues.push({ file: "qa/functional.gd", message: f.slice(0, 300), severity: "error" });
+        }
+        const result = lines.find((l) => l.includes("RESULT"));
+        if (result) log += `\n${result}`;
+      } catch (e) {
+        const err = e as { stdout?: string; message: string };
+        const out = `${err.stdout ?? ""}`;
+        const lines = out.split("\n").filter((l) => l.includes("[QA]"));
+        const fails = lines.filter((l) => l.includes("FAIL"));
+        // non-zero exit = at least one FAIL probe (or crash) — either is evidence
+        for (const f of fails) issues.push({ file: "qa/functional.gd", message: f.slice(0, 300), severity: "error" });
+        if (fails.length === 0) {
+          issues.push({ file: "qa/functional.gd", message: `QA run crashed: ${(err.message ?? "").slice(0, 200)}`, severity: "error" });
+        }
+        log += `\n— functional QA (crashed) —\n${out.slice(0, 4000)}`;
+      }
+    }
+
     return {
       ok: issues.filter((i) => i.severity === "error").length === 0,
       issues,

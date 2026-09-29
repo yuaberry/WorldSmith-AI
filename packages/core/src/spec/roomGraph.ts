@@ -75,11 +75,13 @@ export function generateRooms(spec: GameSpecification): RoomDef[] {
     spawns: [
       { type: "npc", id: "keeper", x: 960, y: GROUND - 40 },
       { type: "checkpoint", id: "cp_hub", x: 260, y: GROUND - 40 },
-      { type: "secret", id: "secret_gate", x: 1150, y: GROUND - 40 },
     ],
     doors: [
       { to: "west", x: 24, y: GROUND - 60, dir: "left" },
       { to: "crossroads", x: W - 24, y: GROUND - 60, dir: "right" },
+      // hidden passage at the far wall — the secret room is REACHABLE (§10 R6:
+      // orphan rooms are dead content; the validator would reject them)
+      { to: "secret", x: 1216, y: GROUND - 60, dir: "right" },
     ],
     modulate: "#d8dcea",
   }));
@@ -100,6 +102,7 @@ export function generateRooms(spec: GameSpecification): RoomDef[] {
     spawns: [
       { type: "enemy", id: "wraith", x: 500, y: GROUND - 60 },
       { type: "enemy", id: "wraith", x: 900, y: GROUND - 60 },
+      { type: "enemy", id: "wisp", x: 640, y: 380 },   // §15 flyer — guards the gallery air
       { type: "pickup", id: "dash", x: 1160, y: 420 },
     ],
     doors: [{ to: "hub", x: W - 24, y: GROUND - 60, dir: "right" }],
@@ -119,6 +122,7 @@ export function generateRooms(spec: GameSpecification): RoomDef[] {
     spawns: [
       { type: "enemy", id: "wraith", x: 360, y: GROUND - 60 },
       { type: "enemy", id: "sentinel", x: 820, y: GROUND - 60 },
+      { type: "enemy", id: "wisp", x: 700, y: 300 },   // §15 flyer — dives from the dark
       { type: "checkpoint", id: "cp_cross", x: 120, y: GROUND - 40 },
     ],
     doors: [

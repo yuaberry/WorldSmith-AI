@@ -172,6 +172,10 @@ func unlock_ability(id: String) -> void:
 func on_player_death() -> void:
 	died.emit()
 
+## Scoring API — enemies/bosses award points; the HUD reads the score var.
+func add_score(points: int) -> void:
+	score += points
+
 func on_boss_defeated() -> void:
 	boss_defeated["sovereign"] = true
 	score += 10
@@ -249,6 +253,7 @@ func _ready() -> void:
 	_build_fade()
 	_build_parallax()
 	_build_rain()
+	_build_vignette()
 	modulate = CanvasModulate.new()
 	add_child(modulate)
 	load_room("hub", Vector2(200, 540))
@@ -389,11 +394,106 @@ func load_room(id: String, spawn_override: Vector2 = Vector2(-1, -1)) -> void:
 		world_root.add_child(dr)
 	for sp in r.get("spawns", []):
 		_spawn(String(sp["type"]), String(sp["id"]), Vector2(sp["x"], sp["y"]))
+	_decor(r)  # §15: rooms are PLACES, not collision shells — light, props, ambience
 	var spawn: Vector2 = spawn_override if spawn_override.x >= 0.0 else Vector2(r["playerSpawn"]["x"], r["playerSpawn"]["y"])
 	var player := preload("res://scenes/player.tscn").instantiate()
 	player.position = spawn
 	world_root.add_child(player)
 	_fade_out()
+
+## §15 decor — each room is a PLACE: torches on ledges (real light + animated
+## flame), arcane crystals on the ground, floating ember motes. Deterministic
+## per room id (same room ⇒ same dressing). Uses only forged assets.
+func _decor(r: Dictionary) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(String(r.get("id", "room")))
+	var flame: Array[Texture2D] = GameState.anim_frames("res://assets/sprites/checkpoint")
+	var glow_tex: Texture2D = GameState.tex("res://assets/sprites/glow.png")
+	var crystal_tex: Texture2D = GameState.tex("res://assets/materials/tile_magical_crystal.png")
+	var GROUND_Y := 600.0
+	for plat in r.get("platforms", []):
+		var py: float = float(plat["y"])
+		var px: float = float(plat["x"])
+		var pw: float = float(plat["w"])
+		if py > GROUND_Y:
+			continue  # the main ground reads cleaner without clutter
+		# wall torch on floating ledges (light first — the flame sells the space)
+		if pw >= 96.0 and flame.size() > 1:
+			var tx: float = px + 18.0 + float(rng.randi() % int(max(8.0, pw - 36.0)))
+			if glow_tex:
+				var halo := Sprite2D.new()
+				halo.texture = glow_tex
+				halo.position = Vector2(tx, py - 26.0)
+				halo.scale = Vector2(0.85, 0.85)
+				halo.modulate = Color(1.0, 0.62, 0.28, 0.5)
+				halo.z_index = -2
+				world_root.add_child(halo)
+			var sf := SpriteFrames.new()
+			sf.add_animation("burn")
+			sf.set_animation_speed("burn", 7.0)
+			sf.set_animation_loop("burn", true)
+			for f in flame:
+				sf.add_frame("burn", f)
+			var fire := AnimatedSprite2D.new()
+			fire.sprite_frames = sf
+			fire.play("burn")
+			fire.position = Vector2(tx, py - 38.0)
+			fire.scale = Vector2(0.62, 0.62)
+			fire.z_index = 4
+			world_root.add_child(fire)
+		# arcane crystals cluster on ledges (landmark + palette echo)
+		if crystal_tex and pw >= 128.0 and rng.randf() < 0.45:
+			for i in 3:
+				var cr := Sprite2D.new()
+				cr.texture = crystal_tex
+				cr.region_enabled = true
+				cr.region_rect = Rect2(rng.randi() % 16, rng.randi() % 16, 14, 14)
+				cr.position = Vector2(px + 24.0 + float(i) * 13.0 + float(rng.randi() % 6), py - 8.0 - float(rng.randi() % 4))
+				cr.scale = Vector2(0.55, 0.55)
+				cr.z_index = 3
+				world_root.add_child(cr)
+	# ambient embers — the room breathes (slow warm motes drifting up)
+	if glow_tex:
+		var embers := CPUParticles2D.new()
+		embers.texture = glow_tex
+		embers.amount = 14
+		embers.lifetime = 7.0
+		embers.preprocess = 6.0
+		embers.position = Vector2(float(r.get("width", 1280)) / 2.0, float(r.get("height", 720)) + 40.0)
+		embers.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+		embers.emission_rect_extents = Vector2(float(r.get("width", 1280)) / 2.0, 10.0)
+		embers.direction = Vector2(0, -1)
+		embers.spread = 12.0
+		embers.initial_velocity_min = 12.0
+		embers.initial_velocity_max = 34.0
+		embers.gravity = Vector2(0, -6.0)
+		embers.scale_amount_min = 0.04
+		embers.scale_amount_max = 0.1
+		embers.color = Color(1.0, 0.66, 0.3, 0.4)
+		embers.z_index = 2
+		world_root.add_child(embers)
+
+## §7 vignette — one screen-space radial darkening (focus + mood), under the HUD.
+func _build_vignette() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 5
+	var spr := Sprite2D.new()
+	var g := Gradient.new()
+	g.set_color(0, Color(0, 0, 0, 0))
+	g.set_color(1, Color(0.04, 0.03, 0.09, 0.5))
+	var gt := GradientTexture2D.new()
+	gt.gradient = g
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(0.72, 0.5)
+	gt.width = 512
+	gt.height = 288
+	spr.texture = gt
+	spr.centered = false
+	spr.position = Vector2(-80, -45)
+	spr.scale = Vector2(1440.0 / 512.0, 810.0 / 288.0)
+	layer.add_child(spr)
+	add_child(layer)
 
 func _spawn(kind: String, id: String, pos: Vector2) -> void:
 	match kind:

@@ -86,7 +86,7 @@ describe("Metroidvania template integrity (§11, §12)", () => {
     const files = metroidvaniaFiles(gameSpec);
     const godot = files["project.godot"] as string;
     const autoloadPaths = [...godot.matchAll(/"\*res:\/\/([^"]+)"/g)].map((m) => m[1]!);
-    expect(autoloadPaths.length).toBe(5); // GameState, GameMenu, HUD, MapScreen, Music (§11.7)
+    expect(autoloadPaths.length).toBe(7); // + Music (§11.7), Feel (§7), QATest (§12)
     for (const p of autoloadPaths) {
       expect(files[p]).toBeDefined();
     }

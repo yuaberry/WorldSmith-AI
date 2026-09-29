@@ -11,11 +11,14 @@ import { sfxClick, sfxPickup, sfxHit } from "./gd_pro";
 import { forgeDefaultSprites } from "../../assets/spriteForge";
 import { deriveSpec, specToMarkdown, type GameSpecification } from "../../spec/gameSpec";
 import { roomsJson } from "../../spec/roomGraph";
+import { validateLevel } from "../../spec/levelValidator";
 import { mvPlayerScript, mvCameraScript } from "../systems/mv_player";
 import { mvEnemyScript, mvBossScript, mvNpcScript } from "../systems/mv_entities";
 import { mvGameStateScript, mvMainScript, mvCheckpointScript, mvPickupScript } from "../systems/mv_world";
 import { mvHudScript, mvMenuScript, mvMapScript } from "../systems/mv_ui";
 import { mvMusicScript } from "../systems/mv_music";
+import { mvFeelScript } from "../systems/mv_feel";
+import { mvQaScript } from "../systems/mv_qa";
 import { forgeSoundtrack } from "../../audio/musicForge";
 import { WEB_EXPORT_PRESET } from "../godotExport";
 import { deriveBible, bibleToMarkdown, type ArtBible } from "../../assets/artBible";
@@ -46,8 +49,9 @@ export function metroidvaniaFiles(spec: GameSpec): Record<string, string | Uint8
     attack_cd: 0.38, attack_damage: 12, attack_range: 36, iframes: 0.8, dash_speed: 520, dash_cd: 0.8,
   };
   const enemiesData = {
-    wraith: { hp: 30, speed: 130, damage: 8, telegraph: 0.45, range: 34, aggro: 260 },
-    sentinel: { hp: 60, speed: 90, damage: 12, telegraph: 0.6, range: 40, aggro: 300 },
+    wraith: { hp: 30, speed: 130, damage: 8, telegraph: 0.45, range: 34, aggro: 260 },        // chaser FSM
+    sentinel: { mode: "turret", hp: 40, speed: 0, damage: 10, telegraph: 0.6, range: 420, aggro: 460 }, // ranged
+    wisp: { mode: "flyer", hp: 14, speed: 95, damage: 6, telegraph: 0.2, range: 26, aggro: 240 },       // diver
   };
   const bossesData = [
     { id: "sovereign", name: "The Hollow Sovereign", hp: 120, damage: 14, phases: 2 },
@@ -89,6 +93,8 @@ GameMenu="*res://scripts/core/game_menu.gd"
 HUD="*res://scripts/ui/hud.gd"
 MapScreen="*res://scripts/core/map_screen.gd"
 Music="*res://scripts/core/music.gd"
+Feel="*res://scripts/core/feel.gd"
+QATest="*res://qa/functional.gd"
 
 [display]
 
@@ -167,6 +173,8 @@ renderer/rendering_method="gl_compatibility"
     "scripts/core/game_menu.gd": mvMenuScript(spec),
     "scripts/core/map_screen.gd": mvMapScript(),
     "scripts/core/music.gd": mvMusicScript(),
+    "scripts/core/feel.gd": mvFeelScript(),
+    "qa/functional.gd": mvQaScript(),
     "scripts/player/player.gd": mvPlayerScript(spec),
     "scripts/player/camera_rig.gd": mvCameraScript(),
     "scripts/ai/enemy.gd": mvEnemyScript(),
@@ -179,12 +187,20 @@ renderer/rendering_method="gl_compatibility"
 
     // DATA-DRIVEN DESIGN (§12) — Change Engine edits these, not code
     "data/spec.json": JSON.stringify(fullSpec, null, 2),
-    "data/rooms.json": roomsJson(fullSpec),
+    // §10 — the world must PROVE itself playable before it ships in the game
+    ...(() => {
+      const level = validateLevel(JSON.parse(roomsJson(fullSpec)));
+      if (!level.pass) {
+        throw new Error(`Level validation FAILED (§10):\n${level.issues.map((i) => `[${i.room ?? "world"}/${i.rule}] ${i.detail}`).join("\n")}`);
+      }
+      return { "data/rooms.json": roomsJson(fullSpec) };
+    })(),
     "data/player.json": JSON.stringify(playerData, null, 2),
     "data/enemies.json": JSON.stringify(enemiesData, null, 2),
     "data/bosses.json": JSON.stringify(bossesData, null, 2),
     "data/abilities.json": JSON.stringify(abilitiesData, null, 2),
     "data/dialogue.json": JSON.stringify(dialogueData, null, 2),
+    "data/feel.json": JSON.stringify({ hitstop: 0.055, sparks_on_hit: 10, sparks_on_death: 22, dust_on_land: 1, shake_player_hurt: 6.0, shake_enemy_hit: 2.5, shake_death: 3.5 }, null, 2),
 
     // §11.7 — state-driven soundtrack (deterministic per project title)
     ...forgeSoundtrack(spec.title),
