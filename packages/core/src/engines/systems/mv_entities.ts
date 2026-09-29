@@ -28,6 +28,7 @@ var home_x := 0.0
 var mode := "chaser"   # §15 enemy variety: chaser | turret | flyer (data-driven)
 var home := Vector2.ZERO
 var hover_t := 0.0
+var base_scale := Vector2.ZERO  # §7 telegraph pulse reference (set after visual build)
 
 func _ready() -> void:
 	add_to_group("hostile")
@@ -53,6 +54,8 @@ func _ready() -> void:
 	add_child(shape)
 	visual = _build_visual("enemy", Color("#e5484d"), Vector2(22, 28))
 	add_child(visual)
+	if visual is Node2D:
+		base_scale = (visual as Node2D).scale
 	GameState.parried.connect(_on_parried)
 
 func _build_visual(base: String, fallback_color: Color, fallback_size: Vector2) -> CanvasItem:
@@ -145,6 +148,9 @@ func _physics_process(delta: float) -> void:
 				velocity.y += 900.0 * delta
 			if visual is CanvasItem:
 				(visual as CanvasItem).modulate = Color(1.6, 0.8, 0.8)
+			if visual is Node2D and base_scale.length() > 0.01:
+				# §7: the wind-up BREATES — a pulsing scale tells "it's coming"
+				(visual as Node2D).scale = base_scale * (1.0 + 0.09 * abs(sin(state_t * 34.0)))
 			if state_t <= 0.0:
 				state = E.ATTACK
 				state_t = 0.22
@@ -155,6 +161,8 @@ func _physics_process(delta: float) -> void:
 		E.ATTACK:
 			if visual is CanvasItem:
 				(visual as CanvasItem).modulate = Color(1, 1, 1)
+			if visual is Node2D and base_scale.length() > 0.01:
+				(visual as Node2D).scale = base_scale
 			if state_t > 0.0 and mode != "turret":
 				if target and is_instance_valid(target):
 					if global_position.distance_to(target.global_position) < attack_range + 10.0:
@@ -224,12 +232,22 @@ func _on_parried() -> void:
 
 func _die() -> void:
 	state = E.DEAD
+	remove_from_group("hostile")  # no more hits/deals during the death anim
 	GameState.add_score(1)
 	GameState.play_sfx("pickup")
 	Feel.sparks(global_position, 22)  # §7 death burst
 	Feel.shake(3.5)
 	Feel.hitstop(0.07)
-	queue_free()
+	# §7 studio death: squash-flat + fade out — reads as DEFEAT, not a pop
+	if visual is Node2D:
+		var tw := create_tween()
+		tw.set_parallel(true)
+		tw.tween_property(visual, "scale", Vector2((visual as Node2D).scale.x * 1.15, (visual as Node2D).scale.y * 0.15), 0.26)
+		if visual is CanvasItem:
+			tw.tween_property(visual, "modulate:a", 0.0, 0.26)
+		tw.chain().tween_callback(queue_free)
+	else:
+		queue_free()
 `;
 }
 
@@ -374,6 +392,10 @@ func take_hit(amount: int, _from: Vector2) -> void:
 		_die()
 
 func _die() -> void:
+	# §7 boss finale: slow-mo + a storm of sparks — the fall of the sovereign
+	Feel.hitstop(0.28)
+	Feel.shake(9.0)
+	Feel.sparks(global_position, 40)
 	GameState.boss_hp_updated.emit(0)
 	GameState.play_sfx("pickup")
 	GameState.on_boss_defeated()

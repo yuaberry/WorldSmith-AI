@@ -428,6 +428,11 @@ func _decor(r: Dictionary) -> void:
 				halo.modulate = Color(1.0, 0.62, 0.28, 0.5)
 				halo.z_index = -2
 				world_root.add_child(halo)
+				# §7 living flame: subtle independent flicker per torch (seeded)
+				var fbase := 0.42 + rng.randf() * 0.12
+				var ftw := halo.create_tween().set_loops()
+				ftw.tween_property(halo, "modulate:a", fbase, 0.14 + rng.randf() * 0.1).set_trans(Tween.TRANS_SINE)
+				ftw.tween_property(halo, "modulate:a", fbase + 0.14, 0.18 + rng.randf() * 0.12).set_trans(Tween.TRANS_SINE)
 			var sf := SpriteFrames.new()
 			sf.add_animation("burn")
 			sf.set_animation_speed("burn", 7.0)

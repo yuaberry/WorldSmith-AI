@@ -148,6 +148,7 @@ func _physics_process(delta: float) -> void:
 			state = State.RUN if abs(velocity.x) > 10.0 else State.IDLE
 	elif state == State.DASH:
 		velocity.y = 0.0
+		_afterimage()  # §7: cyan afterimage trail — the dash READS as supernatural
 		if dash_cd < s("dash_cd", 0.8) - 0.16:
 			state = State.FALL if not is_on_floor() else State.IDLE
 	move_and_slide()
@@ -155,6 +156,11 @@ func _physics_process(delta: float) -> void:
 	var just_landed := _prev_air and is_on_floor() and _prev_vy > 300.0
 	if just_landed:
 		Feel.dust(global_position + Vector2(0, 10.0))
+		if visual is Node2D:  # squash & stretch — the classic landing read
+			var vs := visual as Node2D
+			vs.scale = Vector2(1.5 * facing * 1.18, 1.5 * 0.78)
+			var tw := create_tween()
+			tw.tween_property(vs, "scale", Vector2(1.5 * facing, 1.5), 0.14)
 	_prev_air = not is_on_floor()
 	_prev_vy = velocity.y
 	if iframes > 0.0 and visual is CanvasItem:
@@ -163,6 +169,29 @@ func _physics_process(delta: float) -> void:
 		(visual as CanvasItem).modulate = Color(1, 1, 1, 1)
 
 ## Attack hitbox probe — hits hostiles in range once per swing.
+## §7 dash afterimage: a fading cyan ghost of the current frame — sells speed.
+func _afterimage() -> void:
+	if visual == null:
+		return
+	var tex: Texture2D = null
+	if visual is AnimatedSprite2D:
+		var av := visual as AnimatedSprite2D
+		if av.sprite_frames and av.sprite_frames.has_animation(av.animation):
+			tex = av.sprite_frames.get_frame_texture(av.animation, av.frame)
+	elif visual is Sprite2D:
+		tex = (visual as Sprite2D).texture
+	if tex == null:
+		return
+	var ghost := Sprite2D.new()
+	ghost.texture = tex
+	ghost.global_position = global_position
+	ghost.scale = (visual as Node2D).scale
+	ghost.modulate = Color(0.4, 0.9, 1.0, 0.5)
+	get_tree().current_scene.add_child(ghost)
+	var tw := ghost.create_tween()
+	tw.tween_property(ghost, "modulate:a", 0.0, 0.22)
+	tw.tween_callback(ghost.queue_free)
+
 func _try_hit() -> void:
 	if attack_hit:
 		return
@@ -201,6 +230,10 @@ func _parry_success(_from: Vector2) -> void:
 	GameState.play_sfx("pickup")
 	GameState.spawn_spark(global_position)
 	GameState.emit_parry()
+	# §7 studio juice: a perfect parry FREEZES the frame and rewards the read
+	Feel.hitstop(0.12)
+	Feel.shake(5.0)
+	Feel.sparks(global_position, 14, false)
 
 func _die() -> void:
 	dead = true
