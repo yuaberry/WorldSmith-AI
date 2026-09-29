@@ -87,9 +87,16 @@ O compositor de salas (`mv_world.ts::_load_room`) constrói cada sala com exatam
 
 **Estado do QA funcional na demo**: `[QA] RESULT pass=14 fail=0` (exit 0).
 
+## FASE 6 (parcial) — WIZARD §6 + ARQUÉTIPOS §5 + BOSS FEEL ✅
+
+- **§6 Wizard multi-etapa**: CreateGame.tsx reescrito como 7 passos com stepper, voltar/avançar livre e **plano revisável antes da forja** — (A) Ideia + sugestões de arquétipo por palavras-chave, (B) 24 arquétipos selecionáveis (→ `genreTags` real), (C) Escopo com implicações honestas (→ `qualityTier`), (D) Direção de arte que é **injetada na ideia** (governa a Art Bible via styleFromPrompt — efeito real comprovado), (E) Plataformas com separação honesta entre "verificados pela pipeline" (win/linux/web) e "metadados futuros", (F) Classificação (IARC/Steam Kit) + acessibilidade (gamepad/remap/legendas/contraste), (G) Plano completo revisável → Aprovar & Forjar. Zero passo decorativo: tudo mapeia a campo real ou augmentação com efeito medido.
+- **§5 Arquétipos: 20 → 24** com a interface `config` completa (câmera, controles, progressão, conteúdo, UI, áudio, animação, save, performance, testes, plataformas): **roguelite-action, tower-defense, factory-automation, deckbuilder** (config §5 completo em cada; enriquecimento progressivo dos 20 antigos documentado). +2 testes (24 únicos; config completo nos novos).
+- **Boss Feel**: take_hit com hitstop+shake+sparks; **mudança de fase** com shake 7.0 + burst de 30 sparks.
+
+**Estado da sessão**: 45 testes / 281 asserts · E2E true com gate de QA funcional · `[QA] RESULT pass=14 fail=0` · wizard typecheckado.
+
 ## PRÓXIMAS TAREFAS RECOMENDADAS (ordem)
 1. Estender o harness de QA para os outros templates (topdown/platformer/3D)
-2. §6: wizard multi-etapa (escopo, direção de arte, acessibilidade, plano revisável)
-3. §5: completar 24 arquétipos com config completa
-4. Boss hooks de Feel (impacto nas fases) + decoração por BIOMA (frozen/cypunk)
-5. Fase 5: pipeline 3D (import GLTF + validação + LOD)
+2. Enriquecer `config` §5 nos 20 arquétipos originais
+3. Decoração por BIOMA (frozen/cypunk) + boss gate cinematográfico
+4. Fase 5: pipeline 3D (import GLTF + validação + LOD)

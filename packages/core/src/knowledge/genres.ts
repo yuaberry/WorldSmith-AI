@@ -21,6 +21,21 @@ export interface GenreArchetype {
   mvpSlice: string[];
   pitfalls: string[];
   engineFit: { godot4: number; unreal5: number }; // 0..1 suitability
+  /** §5 mission: complete configurability profile (progressive enrichment —
+   *  new archetypes ship with it; older ones gain it over time). */
+  config?: {
+    camera: string;
+    controls: string;
+    progression: string;
+    content: string;
+    ui: string;
+    audio: string;
+    animation: string;
+    save: string;
+    performance: string;
+    testing: string;
+    platforms: string[];
+  };
 }
 
 export const GENRE_ARCHETYPES: GenreArchetype[] = [
@@ -263,6 +278,106 @@ export const GENRE_ARCHETYPES: GenreArchetype[] = [
     mvpSlice: ["1 arena, 1v1 local", "core physics & scoring", "3-min matches", "1 AI difficulty", "scoreboard"],
     pitfalls: ["online infra scope", "meta exploits", "licensing (use fictional teams)"],
     engineFit: { godot4: 0.7, unreal5: 0.85 },
+  },
+  {
+    id: "roguelite-action",
+    label: "Roguelike / Roguelite Action",
+    examples: ["Hades", "Dead Cells", "Risk of Rain", "Vampire Survivors"],
+    dimension: "2d",
+    coreLoop: "Enter a run of procedurally-arranged rooms -> fight encounters -> pick one of 2-3 upgrades -> build a synergy loadout -> die (or win) -> spend meta currency on permanent unlocks -> run again stronger.",
+    pillars: ["Every death teaches something", "Build synergy discovery", "Runs are 20-40 min arcs", "Meta progression softens losses"],
+    keySystems: ["room/chunk generation with encounter rules", "upgrade pool with rarity & tags", "build synergy validation", "meta-currency + unlock tree", "difficulty scaling", "death recap screen", "boss with pattern phases", "save/load of meta tree"],
+    mvpSlice: ["3 biomes as room sets", "one playable character", "12 upgrades with real synergy", "meta unlock of 3 items", "run stats screen", "1 final boss"],
+    pitfalls: ["upgrade pool with fake synergies", "room repetition before biome 2", "meta progression that invalidates the base game", "boss spike without counterplay telegraphs"],
+    engineFit: { godot4: 0.85, unreal5: 0.4 },
+    config: {
+      camera: "2D follow with look-ahead; arena lock during encounters",
+      controls: "Twin-stick or platformer movement + 2-3 action buttons; gamepad first-class",
+      progression: "Intra-run upgrade choices + inter-run meta tree",
+      content: "Chunk/room pools per biome, seeded run layout, elite/boss rooms",
+      ui: "Pick-one upgrade overlay, loadout icons row, run timer, death recap",
+      audio: "Layered music that intensifies with build power; hit-pitch scaling",
+      animation: "Combat anticipation/impact frames, per-upgrade VFX tells",
+      save: "Meta tree + unlocks; run state saved on quit-and-resume",
+      performance: "60 fps with 100+ active projectiles/enemies; object pooling",
+      testing: "Seeded run determinism tests, upgrade synergy unit tests, spawn soak",
+      platforms: ["windows", "linux", "macos", "web"],
+    },
+  },
+  {
+    id: "tower-defense",
+    label: "Tower Defense / Strategy Defense",
+    examples: ["Kingdom Rush", "Dungeon Warfare", "They Are Billions (hybrid)"],
+    dimension: "2.5d",
+    coreLoop: "Inspect the incoming wave -> place/upgrade towers on the path -> start the wave -> read the leak -> adjust economy (towers vs interest) -> survive all waves or lose lives.",
+    pillars: ["Legible counterplay (types vs types)", "Economy tension (build now vs save)", "Path & placement puzzle", "Escalating waves with gimmicks"],
+    keySystems: ["wave spawner with scripted compositions", "tower types with counters (armor/flying/splash)", "targeting priorities", "economy (bounty + interest)", "lives & fail state", "tower upgrade tiers", "map path & buildable cells"],
+    mvpSlice: ["one map with a fixed path", "4 tower types with real counters", "10 scripted waves + boss wave", "economy with interest", "win/lose screens"],
+    pitfalls: ["one dominant tower strategy", "unreadable projectiles", "economy without tension", "wave pacing that never forces adaptation"],
+    engineFit: { godot4: 0.85, unreal5: 0.4 },
+    config: {
+      camera: "Fixed isometric/angled board; zoom-out for wave overview",
+      controls: "Mouse-driven (select/place/upgrade); hotkeys for speed & start",
+      progression: "Level progression + per-run upgrade choices",
+      content: "Maps as path graphs; wave scripts as data; boss/gimmick waves",
+      ui: "Tower palette, range preview, wave preview bar, economy readout",
+      audio: "Placement ticks, impact layering, danger stinger on leaks",
+      animation: "Tower fire tells, projectile arcs, death pops",
+      save: "Level unlocks & stars; mid-level resume",
+      performance: "60 fps with 300 projectiles; deterministic simulation",
+      testing: "Wave script parsing tests, counter table unit tests, leak-pathfinding checks",
+      platforms: ["windows", "linux", "macos", "web"],
+    },
+  },
+  {
+    id: "factory-automation",
+    label: "Building & Automation (Factory)",
+    examples: ["Factorio", "Satisfactory", "Shapez", "Mindustry (hybrid)"],
+    dimension: "2.5d",
+    coreLoop: "Mine raw nodes -> hand-craft basics -> place machines & belts -> automate a part -> compound automation into the next part -> scale a self-running factory -> set a production goal and optimize it.",
+    pillars: ["Every machine removes a chore", "Throughput as the visible score", "Bottleneck puzzles", "Expansion friction (distance, power, threats)"],
+    keySystems: ["grid placement & deletion", "belt/pipe logistics with throughput", "machine recipes & crafting graph", "power system", "resource patches", "production stats panel", "blueprint copy-paste", "full-factory save/load"],
+    mvpSlice: ["tile grid", "3 machines (miner/smelter/assembler)", "belts with real items", "one recipe chain (ore->plate->part)", "power via burner", "stats panel", "goal: produce 50 parts"],
+    pitfalls: ["belt merge/split bugs (visual lies)", "recipes without a visible goal", "power blackouts that brick progress", "no throughput feedback = hidden bottlenecks"],
+    engineFit: { godot4: 0.75, unreal5: 0.5 },
+    config: {
+      camera: "Free pan/zoom over the grid; click-to-focus on alerts",
+      controls: "Mouse: place/rotate/delete; hotbars for machines; blueprint stamps",
+      progression: "Tech tree gated by produced science/parts; milestone goals",
+      content: "Seeded resource distribution; recipe graph as data; expansion areas",
+      ui: "Toolbar, machine recipes card, power & throughput graphs, alerts",
+      audio: "Machine hum layers that grow with the factory; satisfaction ticks",
+      animation: "Item-on-belt motion, machine working states, smoke/VFX by load",
+      save: "Full-factory serialization; autosave slots; crash-safe writes",
+      performance: "Fixed simulation tick budget; chunked updates for 10k+ items",
+      testing: "Recipe graph consistency tests, belt throughput sim tests, save roundtrip",
+      platforms: ["windows", "linux", "macos"],
+    },
+  },
+  {
+    id: "deckbuilder",
+    label: "Card & Deckbuilding Strategy",
+    examples: ["Slay the Spire", "Monster Train", "Balatro"],
+    dimension: "2d",
+    coreLoop: "Build a deck from earned cards -> enter turn-based encounters -> play cards under energy constraints -> resolve telegraphed intents -> claim rewards (cards/relics) -> refine the deck against the final boss.",
+    pillars: ["Every card changes the math visibly", "Deck as the character", "Intent-driven telegraphs", "Reward temptation vs deck coherence"],
+    keySystems: ["card data (cost/type/effects)", "energy per turn", "draw/discard/resolve pipeline", "enemy intents telegraphed", "relics/passives", "deck view & pile counts", "encounter map", "run & meta save"],
+    mvpSlice: ["20 starter cards", "3 enemies with distinct intents", "one boss with a pattern", "energy system", "reward picks after fights", "deck viewer", "win condition"],
+    pitfalls: ["effects that don't stack consistently", "unreadable board state", "rewards that dilute decks without choice tension", "boss without counterplay to the starter deck"],
+    engineFit: { godot4: 0.8, unreal5: 0.35 },
+    config: {
+      camera: "Static battle tableau; card hover inspect layer",
+      controls: "Mouse drag/click to play; keyboard confirm/cancel & deck view",
+      progression: "Run-based card rewards + ascension-style modifiers; meta unlocks",
+      content: "Encounter tables, map nodes (fight/elite/shop/rest), card & relic pools",
+      ui: "Hand fan, energy orb, intent icons, draw/discard piles, tooltips everywhere",
+      audio: "Card play ticks, tension layering by boss phase; low-key explore music",
+      animation: "Card draw/play arcs, number popups, intent flashes",
+      save: "Mid-run save + meta unlocks",
+      performance: "Trivial rendering; logic determinism matters (seeded shuffles)",
+      testing: "Effect resolution unit tests (each card), RNG seed determinism, intent table checks",
+      platforms: ["windows", "linux", "macos", "web"],
+    },
   },
 ];
 

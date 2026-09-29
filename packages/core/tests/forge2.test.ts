@@ -4,6 +4,7 @@
  */
 import { describe, expect, test } from "bun:test";
 import { deriveSpec, GameSpecification, specToMarkdown } from "../src/spec/gameSpec";
+import { GENRE_ARCHETYPES } from "../src/knowledge/genres";
 import { generateRooms, roomsJson } from "../src/spec/roomGraph";
 import { metroidvaniaFiles } from "../src/engines/templates/godot_metroidvania";
 import type { GameSpec } from "../src/engines/types";
@@ -129,5 +130,25 @@ describe("Metroidvania template integrity (§11, §12)", () => {
     const player = files["scripts/player/player.gd"] as string;
     expect(player).toContain("parry_window");
     expect(player).toContain("data/player.json");
+  });
+});
+
+describe("Genre archetype library (§5)", () => {
+  test("at least 24 archetypes, unique ids", () => {
+    expect(GENRE_ARCHETYPES.length).toBeGreaterThanOrEqual(24);
+    const ids = GENRE_ARCHETYPES.map((a) => a.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+  test("newest four carry the complete §5 config profile", () => {
+    for (const id of ["roguelite-action", "tower-defense", "factory-automation", "deckbuilder"]) {
+      const a = GENRE_ARCHETYPES.find((x) => x.id === id)!;
+      expect(a.config).toBeDefined();
+      expect(a.config!.camera).toBeTruthy();
+      expect(a.config!.controls).toBeTruthy();
+      expect(a.config!.progression).toBeTruthy();
+      expect(a.config!.save).toBeTruthy();
+      expect(a.config!.testing).toBeTruthy();
+      expect(a.config!.platforms.length).toBeGreaterThan(1);
+    }
   });
 });

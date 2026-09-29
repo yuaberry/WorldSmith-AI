@@ -361,10 +361,13 @@ func take_hit(amount: int, _from: Vector2) -> void:
 	GameState.play_sfx("hit")
 	GameState.spawn_spark(global_position)
 	GameState.boss_hp_updated.emit(hp)
+	Feel.impact(global_position, 3.0)  # §7: boss hits carry weight
 	var threshold := int(float(data.get("hp", 120)) * 0.5) if data else 60
 	if phase == 1 and hp <= threshold:
 		phase = 2
 		velocity.y = -260.0
+		Feel.shake(7.0)          # phase shift: the room answers
+		Feel.sparks(global_position, 30)
 		GameState.spawn_spark(global_position)
 		GameState.play_sfx("hit")
 	if hp <= 0:
