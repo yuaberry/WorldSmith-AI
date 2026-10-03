@@ -377,6 +377,13 @@ func load_room(id: String, spawn_override: Vector2 = Vector2(-1, -1)) -> void:
 		world_root.add_child(hz)
 	for door in r.get("doors", []):
 		var dr := Area2D.new()
+		var dx: float = float(door["x"])
+		var dy: float = float(door["y"])
+		# P0 FIX (QA caught the class): doors were NEVER positioned — every
+		# Area sat at (0,0), invisible and unreachable at the designed spots.
+		dr.position = Vector2(dx, dy)
+		dr.add_to_group("door")
+		dr.set_meta("to", String(door["to"]))
 		var req: String = door.get("requires", "")
 		if req != "" and not GameState.abilities.has(req):
 			dr.set_meta("locked", req)
@@ -392,6 +399,42 @@ func load_room(id: String, spawn_override: Vector2 = Vector2(-1, -1)) -> void:
 					return
 				_transition(door["to"]))
 		world_root.add_child(dr)
+		# §16 LEGIBILITY: a door you can SEE — arch pillars + lintel + a portal
+		# glow (cyan = open, ember red = sealed). No more invisible exits.
+		var wall_t2: Texture2D = GameState.tex("res://assets/sprites/tile_wall.png")
+		if wall_t2:
+			for side in [-26.0, 26.0]:
+				var pillar := Sprite2D.new()
+				pillar.texture = wall_t2
+				pillar.centered = false
+				pillar.region_enabled = true
+				pillar.region_rect = Rect2(2, 2, 20, 90)
+				pillar.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+				pillar.position = Vector2(dx + side - 10.0, dy + 58.0 - 90.0)
+				pillar.z_index = 1
+				world_root.add_child(pillar)
+			var lintel := Sprite2D.new()
+			lintel.texture = wall_t2
+			lintel.centered = false
+			lintel.region_enabled = true
+			lintel.region_rect = Rect2(2, 2, 84, 14)
+			lintel.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+			lintel.position = Vector2(dx - 42.0, dy + 58.0 - 104.0)
+			lintel.z_index = 1
+			world_root.add_child(lintel)
+		var portal_t: Texture2D = GameState.tex("res://assets/sprites/glow.png")
+		if portal_t:
+			var portal := Sprite2D.new()
+			portal.texture = portal_t
+			portal.scale = Vector2(0.8, 2.0)
+			portal.position = Vector2(dx, dy)
+			portal.modulate = Color(1.0, 0.35, 0.22, 0.55) if dr.has_meta("locked") else Color(0.35, 0.95, 1.0, 0.75)
+			portal.z_index = -1
+			world_root.add_child(portal)
+			var ptw := portal.create_tween().set_loops()
+			var pb := 0.5 if dr.has_meta("locked") else 0.65
+			ptw.tween_property(portal, "modulate:a", pb - 0.16, 0.5).set_trans(Tween.TRANS_SINE)
+			ptw.tween_property(portal, "modulate:a", pb, 0.55).set_trans(Tween.TRANS_SINE)
 	for sp in r.get("spawns", []):
 		_spawn(String(sp["type"]), String(sp["id"]), Vector2(sp["x"], sp["y"]))
 	_decor(r)  # §15: rooms are PLACES, not collision shells — light, props, ambience
@@ -411,6 +454,30 @@ func _decor(r: Dictionary) -> void:
 	var glow_tex: Texture2D = GameState.tex("res://assets/sprites/glow.png")
 	var crystal_tex: Texture2D = GameState.tex("res://assets/materials/tile_magical_crystal.png")
 	var GROUND_Y := 600.0
+	# §15 biome identity: each biome breathes differently (data-driven decor)
+	var biome: String = String(r.get("biome", "ruins"))
+	var torch_scale := 0.62
+	var torch_chance := 1.0
+	var crystal_chance := 0.45
+	var ember_col := Color(1.0, 0.66, 0.3, 0.4)
+	var ember_rate := 14
+	match biome:
+		"caves":
+			torch_chance = 0.0          # no fire underground — the crystal IS the light
+			crystal_chance = 0.95
+			ember_col = Color(0.4, 0.8, 1.0, 0.35)
+		"arena":
+			torch_scale = 0.95          # braziers: bigger flames before the fight
+			ember_rate = 22
+			ember_col = Color(1.0, 0.45, 0.25, 0.5)
+		"boss":
+			torch_scale = 0.8
+			ember_rate = 8
+			ember_col = Color(0.75, 0.4, 1.0, 0.45)  # tense purple drift
+		"frozen":
+			torch_chance = 0.3
+			crystal_chance = 0.7
+			ember_col = Color(0.55, 0.85, 1.0, 0.3)
 	for plat in r.get("platforms", []):
 		var py: float = float(plat["y"])
 		var px: float = float(plat["x"])
@@ -418,7 +485,7 @@ func _decor(r: Dictionary) -> void:
 		if py > GROUND_Y:
 			continue  # the main ground reads cleaner without clutter
 		# wall torch on floating ledges (light first — the flame sells the space)
-		if pw >= 96.0 and flame.size() > 1:
+		if pw >= 96.0 and flame.size() > 1 and rng.randf() < torch_chance:
 			var tx: float = px + 18.0 + float(rng.randi() % int(max(8.0, pw - 36.0)))
 			if glow_tex:
 				var halo := Sprite2D.new()
@@ -443,11 +510,11 @@ func _decor(r: Dictionary) -> void:
 			fire.sprite_frames = sf
 			fire.play("burn")
 			fire.position = Vector2(tx, py - 38.0)
-			fire.scale = Vector2(0.62, 0.62)
+			fire.scale = Vector2(torch_scale, torch_scale)
 			fire.z_index = 4
 			world_root.add_child(fire)
 		# arcane crystals cluster on ledges (landmark + palette echo)
-		if crystal_tex and pw >= 128.0 and rng.randf() < 0.45:
+		if crystal_tex and pw >= 128.0 and rng.randf() < crystal_chance:
 			for i in 3:
 				var cr := Sprite2D.new()
 				cr.texture = crystal_tex
@@ -461,7 +528,7 @@ func _decor(r: Dictionary) -> void:
 	if glow_tex:
 		var embers := CPUParticles2D.new()
 		embers.texture = glow_tex
-		embers.amount = 14
+		embers.amount = ember_rate
 		embers.lifetime = 7.0
 		embers.preprocess = 6.0
 		embers.position = Vector2(float(r.get("width", 1280)) / 2.0, float(r.get("height", 720)) + 40.0)
@@ -474,7 +541,7 @@ func _decor(r: Dictionary) -> void:
 		embers.gravity = Vector2(0, -6.0)
 		embers.scale_amount_min = 0.04
 		embers.scale_amount_max = 0.1
-		embers.color = Color(1.0, 0.66, 0.3, 0.4)
+		embers.color = ember_col
 		embers.z_index = 2
 		world_root.add_child(embers)
 

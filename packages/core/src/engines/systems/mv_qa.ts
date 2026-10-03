@@ -60,14 +60,25 @@ func _process(delta: float) -> void:
 				_step = 1
 				_t = 0.0
 		1:
-			# 8 · room transition — the real world graph walks
-			var world := get_tree().get_first_node_in_group("world_root")
-			if world and world.has_method("_transition") and not _armed.has("t"):
-				world._transition("west")
-				_armed["t"] = true
-			elif _armed.has("t") and _t > 1.2:
-				_check("world/transition", GameState.current_room == "west",
-					"hub → " + str(GameState.current_room))
+			# 8 · room transition — the REAL player path: walk into the actual door
+			#    (the old probe called _transition directly and MISSED the P0 bug
+			#    where door Areas were never positioned — QA must play the game.)
+			if not _armed.has("door"):
+				var players := get_tree().get_nodes_in_group("player")
+				var door = null
+				for d in get_tree().get_nodes_in_group("door"):
+					if d and String(d.get_meta("to")) == "west":
+						door = d
+						break
+				if door != null and players.size() > 0:
+					(players[0] as Node2D).global_position = (door as Node2D).global_position + Vector2(0.0, -8.0)
+					_armed["door"] = true
+				elif _t > 1.0:
+					_check("world/transition", false, "no door with to=west found in hub")
+					_step = 2
+					_t = 0.0
+			elif _t > 1.6:
+				_check("world/transition", GameState.current_room == "west", "hub → " + str(GameState.current_room))
 				_step = 2
 				_t = 0.0
 		2:

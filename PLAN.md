@@ -329,3 +329,12 @@ _S3-R: wizard multi-etapa + 24 arquétipos. Commit LOCAL — push aguardando aut
 > **Polimento entregue (7 efeitos §7/§15)**: dash afterimages (rastro ciano por frame, ghost tween), parry perfeito congelado (hitstop 0.12 + shake 5 + 14 sparks frios), morte de inimigo ANIMADA (squash-flat + fade, remove do grupo antes), telegraph que respira (pulso senoidal de escala com base_scale), pouso com squash & stretch, tochas com luz viva (flicker independente seeded), boss finale (slow-mo 0.28 + shake 9 + 40 sparks).
 > **Verificação**: 45 testes/281 asserts · E2E true com gate QA · [QA] RESULT pass=14 fail=0 (a morte animada passou no probe: queue_free aos 0.26s < janela 0.8s) · evidência docs/evidence-v012.png atualizada · snapshot/studio/demo/binários regenerados · release re-upada com --clobber.
 _S3-S: v0.12.0 completa com polimento de estúdio. Próxima: QA nos outros templates, config §5 nos 20 arquétipos, decor por bioma, pipeline 3D._
+
+### S3-T — P0 DESCOBERTO E CORRIGIDO: portas nunca posicionadas + biomas
+> Continuação: "garanta qualidade… verifique se não tem nada faltando."
+> **BUG P0 (desde v0.5)**: as Area2D das portas NUNCA recebiam position — TODAS invisíveis e empilhadas em (0,0). As transições reais por porta estavam quebradas; o QA antigo passava porque chamava _transition direto (burlava a porta) e o validador lê dados, não a cena. **Invariável 30: QA funcional deve exercitar O CAMINHO REAL do jogador (atravessar a porta), nunca só a função interna.**
+> **Fix**: dr.position = (x,y) + grupo "door" + meta "to" + probe 8 reescrito para teleportar o player PARA DENTRO da porta real (o fix é provado pelo próprio probe: sem posicionamento ele falha).
+> **Legibilidade §16**: portais VISÍVEIS — pilares + verga (tile_wall) + brilho pulsante (ciano=aberta, vermelho brasa=selada; tween loop).
+> **Biomas §15**: decor dirigido por dados — caves (sem fogo; cristais bioluminescentes ~95%, embers azuis), arena (braseiros maiores, embers densos vermelhos), boss (embers púrpura tensos, raros), frozen (geleia fria). ruins mantém o set atual.
+> **Verificação**: 45/281 · E2E true com gate · [QA] RESULT pass=14 fail=0 (transição AGORA pela porta física) · 0 erros engine · evidência atualizada · snapshot/studio/demo/binários regenerados · release v0.12.0 assets re-enviados (--clobber).
+_S3-T: bug P0 de portas corrigido com prova pelo QA real; biomas vivos. Invariável 30 registrada._
