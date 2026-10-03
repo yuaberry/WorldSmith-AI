@@ -100,3 +100,19 @@ O compositor de salas (`mv_world.ts::_load_room`) constrói cada sala com exatam
 2. Enriquecer `config` §5 nos 20 arquétipos originais
 3. Decoração por BIOMA (frozen/cypunk) + boss gate cinematográfico
 4. Fase 5: pipeline 3D (import GLTF + validação + LOD)
+
+
+## FASE 5 — FUNDAÇÃO 3D (§8) + GATES UNIVERSAIS ✅
+
+**QA funcional em TODOS os templates (§12)**: `generic_qa.ts` (harness polling, imune às 3 classes de freeze) injetado em topdown/platformer/3D via autoload QATest do kit gd_pro. Probes universais: title-start (caminho REAL do menu — aprendido com as duas convenções: gd_pro `_on_any_button("PLAY")` vs metroidvania `_action("DESPERTAR")`), boot+player, damage, score, HUD, save-path. **E2E multiflavor** (`scripts/e2e-multiflavor.ts`): forja os 3 flavors e exige validate PASS — **all green**. Todo jogo gerado por qualquer template agora nasce com gate de QA funcional.
+
+**24/24 arquétipos com config §5 completo** (câmera, controles, progressão, conteúdo, UI, áudio, animação, save, performance, testes, plataformas) — teste endurecido exige TODOS os campos em TODOS.
+
+**Validador glTF/GLB (fundação do pipeline 3D)**: `assets/gltfValidate.ts` — parser binário puro (GLB magic/chunks/length + documento glTF 2.0) com 7 regras (R1 contêiner, R2 documento, R3 conteúdo, R4 POSITION, R5 accessors, R6 buffers) + stats (vértices/malhas/materiais/animações) que alimentarão o estágio de LOD/import-profile. Testes CONSTRUEM GLBs binários spec-correct (triângulo com buffer real) e provam cada regra — 7/7.
+
+**Dependência registrada**: modelos 3D reais dependem de importação do usuário ou text-to-3D futuro (interface ModelGenerationProvider pronta); o validador já protege qualquer GLB que entrar.
+
+## PRÓXIMAS TAREFAS
+1. Import GLTF no template 3D (cena de referência com modelo validado)
+2. LOD/import-profiles por plataforma usando os stats do validador
+3. Decor por bioma nos demais templates + gates cinematográficos

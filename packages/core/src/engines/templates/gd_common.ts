@@ -23,6 +23,7 @@ config/features=PackedStringArray("4.3")
 
 GameState="*res://scripts/game_state.gd"
 GameMenu="*res://scripts/game_menu.gd"
+QATest="*res://qa/functional.gd"
 
 [display]
 

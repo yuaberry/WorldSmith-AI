@@ -7,6 +7,7 @@ import type { GameSpec } from "../types";
 import { projectGodot, godotIgnore, rootScene, iconSvg, hudScript } from "./gd_common";
 import { WEB_EXPORT_PRESET } from "../godotExport";
 import { sfxPickup, sfxHit, sfxClick, menuScript, gameStateProPatch } from "./gd_pro";
+import { genericQaScript } from "../systems/generic_qa";
 import { forgeDefaultSprites } from "../../assets/spriteForge";
 
 function gameState(spec: GameSpec): string {
@@ -484,6 +485,8 @@ export function platformerFiles(spec: GameSpec): Record<string, string | Uint8Ar
     "audio/hit.wav": sfxHit(),
     "audio/click.wav": sfxClick(),
     "scripts/game_menu.gd": menuScript(spec),
+
+    "qa/functional.gd": genericQaScript(),
     ...Object.fromEntries(Object.entries(forgeDefaultSprites({ accent: spec.palette.accent, bg: spec.palette.bg }))),
     "icon.svg": iconSvg(spec.palette.bg, spec.palette.accent),
     "scenes/main.tscn": rootScene("Main", "Node", "res://scripts/main.gd"),

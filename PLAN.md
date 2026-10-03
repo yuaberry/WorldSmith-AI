@@ -338,3 +338,12 @@ _S3-S: v0.12.0 completa com polimento de estúdio. Próxima: QA nos outros templ
 > **Biomas §15**: decor dirigido por dados — caves (sem fogo; cristais bioluminescentes ~95%, embers azuis), arena (braseiros maiores, embers densos vermelhos), boss (embers púrpura tensos, raros), frozen (geleia fria). ruins mantém o set atual.
 > **Verificação**: 45/281 · E2E true com gate · [QA] RESULT pass=14 fail=0 (transição AGORA pela porta física) · 0 erros engine · evidência atualizada · snapshot/studio/demo/binários regenerados · release v0.12.0 assets re-enviados (--clobber).
 _S3-T: bug P0 de portas corrigido com prova pelo QA real; biomas vivos. Invariável 30 registrada._
+
+### S3-U — "TODOS": QA universal + 24 configs + fundação 3D (v0.13.0)
+> Dono: "todos." (as 3 frentes) — depois "continue de onde parou."
+> **T1 ✅ QA funcional universal**: generic_qa.ts (polling, ALWAYS, env-gated) injetado em topdown/platformer/3D (autoload QATest no projectGodot do gd_common); probes: title-start REAL (duas convenções de menu), boot+player, damage, score, hud, save-path; **e2e-multiflavor.ts forja os 3 e exige validate PASS — all green**.
+> **T2 ✅ 24/24 arquétipos com config §5** completo (injetados nos 20 originais com conhecimento real de gênero); teste endurecido: TODOS os campos em TODOS.
+> **T3 ✅ Validador glTF/GLB** (`assets/gltfValidate.ts`): parser binário puro, 7 regras, stats p/ LOD futuro; testes constroem GLB spec-correct de verdade — 7/7.
+> **Invariável 31**: menu-start tem DUAS convenções nos kits (_on_any_button vs _action) — harness universal deve tentar ambas; invariável 32: testes de parser de formato constroem bytes REAIS do formato (nada de mock de alto nível).
+> **Suíte**: 52 testes / 561 asserts · E2E metroidvania true + multiflavor all green · v0.13.0 (server/wizard/.deb/pacotes).
+_S3-U: gates universais + fundação 3D. v0.13.0._

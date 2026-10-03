@@ -7,6 +7,7 @@ import type { GameSpec } from "../types";
 import { projectGodot, godotIgnore, rootScene, iconSvg, hudScript } from "./gd_common";
 import { WEB_EXPORT_PRESET } from "../godotExport";
 import { sfxPickup, sfxHit, sfxClick, menuScript, gameStateProPatch } from "./gd_pro";
+import { genericQaScript } from "../systems/generic_qa";
 
 function gameState(spec: GameSpec): string {
   return `extends Node
@@ -376,6 +377,8 @@ export function threeDFiles(spec: GameSpec): Record<string, string | Uint8Array>
     "audio/hit.wav": sfxHit(),
     "audio/click.wav": sfxClick(),
     "scripts/game_menu.gd": menuScript(spec),
+
+    "qa/functional.gd": genericQaScript(),
     "icon.svg": iconSvg(spec.palette.bg, spec.palette.accent),
     "scenes/main.tscn": rootScene("Main", "Node", "res://scripts/main.gd"),
     "scenes/player.tscn": rootScene("Player", "CharacterBody3D", "res://scripts/player.gd"),

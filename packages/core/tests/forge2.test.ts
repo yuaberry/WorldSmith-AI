@@ -139,14 +139,18 @@ describe("Genre archetype library (§5)", () => {
     const ids = GENRE_ARCHETYPES.map((a) => a.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
-  test("newest four carry the complete §5 config profile", () => {
-    for (const id of ["roguelite-action", "tower-defense", "factory-automation", "deckbuilder"]) {
-      const a = GENRE_ARCHETYPES.find((x) => x.id === id)!;
-      expect(a.config).toBeDefined();
+  test("ALL 24 archetypes carry the complete §5 config profile", () => {
+    for (const a of GENRE_ARCHETYPES) {
+      expect(a.config, `${a.id} missing config`).toBeDefined();
       expect(a.config!.camera).toBeTruthy();
       expect(a.config!.controls).toBeTruthy();
       expect(a.config!.progression).toBeTruthy();
+      expect(a.config!.content).toBeTruthy();
+      expect(a.config!.ui).toBeTruthy();
+      expect(a.config!.audio).toBeTruthy();
+      expect(a.config!.animation).toBeTruthy();
       expect(a.config!.save).toBeTruthy();
+      expect(a.config!.performance).toBeTruthy();
       expect(a.config!.testing).toBeTruthy();
       expect(a.config!.platforms.length).toBeGreaterThan(1);
     }
