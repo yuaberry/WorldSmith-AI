@@ -9,7 +9,7 @@
  */
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Rocket, Info, ArrowLeft, ArrowRight, Wand2, Check } from "lucide-react";
+import { Rocket, Info, ArrowLeft, ArrowRight, Wand2, Check, Paperclip, X } from "lucide-react";
 import { api } from "../lib/api";
 
 // ── catálogos (real pipeline surface) ────────────────────────────────────────
@@ -97,8 +97,24 @@ export default function CreateGame() {
   const [extra, setExtra] = useState<string[]>([]);
   const [rating, setRating] = useState("teen");
   const [access, setAccess] = useState<string[]>(["gamepad"]);
+  const [refs, setRefs] = useState<Array<{ name: string; mime: string; data: string }>>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const onFiles = (files: FileList | null) => {
+    if (!files) return;
+    const next = [...refs];
+    for (const f of Array.from(files).slice(0, 6 - refs.length)) {
+      if (f.size > 5 * 1024 * 1024) continue; // honest client guard (server re-checks)
+      const reader = new FileReader();
+      reader.onload = () => {
+        const b64 = String(reader.result ?? "").split(",")[1] ?? "";
+        if (b64) next.push({ name: f.name, mime: f.type || "image/png", data: b64 });
+      };
+      reader.readAsDataURL(f);
+    }
+    setTimeout(() => setRefs([...next]), 350); // let the readers settle
+  };
 
   const suggestions = useMemo(() => {
     const t = idea.toLowerCase();
@@ -136,6 +152,11 @@ export default function CreateGame() {
         genreTags,
         contentRating: rating,
       });
+      // §6-A: upload reference images BEFORE forging — the analyze stage
+      // vision-reads them and the art direction inherits the references
+      for (const r of refs) {
+        try { await api.addReference(project.id, r); } catch { /* forge proceeds text-only (event shown) */ }
+      }
       void api.forge(project.id).catch(() => undefined);
       nav(`/project/${project.id}`);
     } catch (e) {
@@ -205,6 +226,31 @@ export default function CreateGame() {
           {idea.trim().length > 0 && idea.trim().length < 10 && (
             <div className="text-[11px] text-warn">Descreva com pelo menos 10 caracteres.</div>
           )}
+          <div className="pt-1">
+            <label className="kicker flex items-center gap-1.5 cursor-pointer text-brand-soft">
+              <Paperclip size={12} /> ANEXAR REFERÊNCIAS VISUAIS (IMAGENS)
+              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => onFiles(e.target.files)} />
+            </label>
+            <p className="text-[10px] text-faint mt-1.5">
+              A IA analisa por visão e extrai paleta, mood e estilo — a direção de arte do jogo herda a referência. Até 6 imagens de 5MB.
+            </p>
+            {refs.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2.5">
+                {refs.map((r, i) => (
+                  <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-edge group">
+                    <img src={`data:${r.mime};base64,${r.data}`} alt={r.name} className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => setRefs(refs.filter((_, x) => x !== i))}
+                      className="absolute top-0.5 right-0.5 bg-black/70 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remover"
+                    >
+                      <X size={10} className="text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -337,6 +383,7 @@ export default function CreateGame() {
           <div className="space-y-2.5 text-[12.5px]">
             <div><span className="text-mute">Conceito:</span> {composedIdea.slice(0, 220)}{composedIdea.length > 220 ? "…" : ""}</div>
             <div><span className="text-mute">Título:</span> {name.trim() || <i className="text-faint">a IA sugere</i>}</div>
+            <div><span className="text-mute">Referências visuais:</span> {refs.length ? `${refs.length} imagem(ns) — paleta/mood extraídos por visão` : <i className="text-faint">nenhuma</i>}</div>
             <div><span className="text-mute">Arquétipos:</span> {genreTags.length ? genreTags.map(archLabel).join(" + ") : <i className="text-faint">o Director infere</i>}</div>
             <div><span className="text-mute">Escopo:</span> {scopeLabel}</div>
             <div><span className="text-mute">Arte:</span> {art ? ART_STYLES.find((a) => a.id === art)?.label : <i className="text-faint">derivada da ideia</i>}</div>

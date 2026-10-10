@@ -116,3 +116,16 @@ O compositor de salas (`mv_world.ts::_load_room`) constrói cada sala com exatam
 1. Import GLTF no template 3D (cena de referência com modelo validado)
 2. LOD/import-profiles por plataforma usando os stats do validador
 3. Decor por bioma nos demais templates + gates cinematográficos
+
+
+## REFERÊNCIAS VISUAIS NO WIZARD (§2/§6-A) ✅ (v0.14.0)
+
+**O usuário agora anexa imagens de referência na criação** — e elas dirigem a arte do jogo de verdade:
+
+- **Wizard Etapa A**: seletor de imagens (até 6 × 5MB) com previews em miniatura e remoção; o plano final (Etapa G) mostra o que será anexado
+- **Servidor**: `POST/GET /api/projects/:id/references` → arquivo em `references/` + linha na tabela `project_references` (com a coluna `analysis` que já existia prevista)
+- **Análise por visão no estágio analyze**: `visionJson<T>` genérico (ladder medida nemotron→qwen→gemma com retry) extrai da imagem: **paleta (hex), mood, estilo, câmera, hints de gênero, o que evitar** — só características ABSTRATAS (missão: zero conteúdo protegido)
+- **Fluxo comprovado end-to-end**: upload do ícone da marca → visão respondeu `flat vector geometric · paleta 5 cores` (as cores REAIS do ícone) → análise persistida no DB → texto incorporado ao brief → plano + Art Bible herdam o visual
+- **Fallback honesto**: sem chave/visão indisponível → referência armazenada + evento "análise pulada"; o forge nunca quebra por causa de referência
+
+**Próximas**: chat por projeto com anexo de imagem (Change Engine por referência) · referências de gameplay (vídeo/GIF) · DNA mostrando as referências analisadas.

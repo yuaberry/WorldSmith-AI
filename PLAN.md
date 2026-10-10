@@ -347,3 +347,9 @@ _S3-T: bug P0 de portas corrigido com prova pelo QA real; biomas vivos. Invariá
 > **Invariável 31**: menu-start tem DUAS convenções nos kits (_on_any_button vs _action) — harness universal deve tentar ambas; invariável 32: testes de parser de formato constroem bytes REAIS do formato (nada de mock de alto nível).
 > **Suíte**: 52 testes / 561 asserts · E2E metroidvania true + multiflavor all green · v0.13.0 (server/wizard/.deb/pacotes).
 _S3-U: gates universais + fundação 3D. v0.13.0._
+
+### S3-V — Referências visuais no wizard (§2/§6-A) — v0.14.0
+> Dono: "adicione a função de adicionar imagem no prompt da IA para dar referência."
+> **Fluxo REAL end-to-end (provar no servidor local)**: wizard Etapa A anexa imagens (≤6×5MB, previews) → POST /references grava em references/ + project_references → forge analyze chama analyzeReferenceImages → visionJson<T> (ladder medida, extraída de visualQA) extrai paleta hex/mood/estilo/câmera/gêneros → texto entra no brief.idea (plano E Art Bible herdam) → análise persistida (status 'analyzed'). **Prova**: ícone da marca → "flat vector geometric · paleta 5 cores" (cores reais extraídas) + evento success.
+> **Invariantes**: (33) referência é bônus — forge nunca quebra por ela (try/catch + evento honesto); (34) análise extrai apenas características ABSTRATAS (missão §5: nada de conteúdo protegido).
+_S3-V: referências visuais → visão → direção de arte. v0.14.0._

@@ -120,7 +120,7 @@ function storeKitCounts(): { images: number; screenshots: number } {
 // ── status DTO (honest: no backend on the web demo) ──────────────────────────
 const status = {
   app: "WorldSmith AI",
-  version: "0.13.0",
+  version: "0.14.0",
   aiConfigured: false, // honest: the static demo cannot call providers
   uiBuilt: true,
   engines: [

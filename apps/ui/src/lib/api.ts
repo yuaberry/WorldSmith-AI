@@ -112,5 +112,8 @@ export const api = {
   buildGame: (id: string, platform: "windows" | "linux") =>
     req<{ started: boolean; platform: string }>(`/api/projects/${id}/build-game`, { method: "POST", body: JSON.stringify({ platform }) }),
   templatesStatus: () => req<{ installed: boolean; target: string }>("/api/engines/godot/templates-status"),
+  references: (id: string) => req<{ references: Array<{ id: string; name: string; kind: string; path: string | null; analysis: string | null }> }>(`/api/projects/${id}/references`),
+  addReference: (id: string, body: { name: string; mime: string; data: string }) =>
+    req<{ ok: boolean; id: string }>(`/api/projects/${id}/references`, { method: "POST", body: JSON.stringify(body) }),
   installTemplates: () => req<{ ok: boolean; note: string; installed: boolean }>("/api/engines/godot/templates-install", { method: "POST", body: "{}" }),
 };

@@ -23,6 +23,8 @@ export interface VisionProvider {
   readonly id: string;
   readonly configured: boolean;
   analyze(image: Uint8Array, instructions: string): Promise<{ ok: boolean; pass?: boolean; issues?: string[]; error?: string }>;
+  /** Generic structured read (used by reference-image extraction, §2/§6-A). */
+  visionJson<T>(image: Uint8Array, instructions: string): Promise<{ ok: boolean; json?: T; error?: string }>;
 }
 
 const API = "https://openrouter.ai/api/v1/chat/completions";
@@ -62,6 +64,76 @@ class OpenRouterImageProvider implements ImageGenerationProvider {
 class OpenRouterVisionProvider implements VisionProvider {
   readonly id = "openrouter-vision";
   get configured(): boolean { return getCredential("openrouter") != null; }
+  /** Raw vision call with the measured retry ladder; returns parsed JSON. */
+  private async rawJson<T>(image: Uint8Array, instructions: string): Promise<{ ok: boolean; json?: T; error?: string }> {
+    const key = getCredential("openrouter");
+    if (!key) return { ok: false, error: "no key" };
+    const b64 = Buffer.from(image).toString("base64");
+    // Free vision endpoints are flaky (ResourceExhausted/Provider errors are
+    // transient) — climb a measured ladder with backoff instead of giving up.
+    // Nemotron proved the most reliable (measured) so it gets 3 of 5 slots.
+    const ladder = [
+      getSetting<string>("providers.openrouter.visionModel", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
+      "qwen/qwen3.8-27b:free",
+      "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "google/gemma-4-31b-it:free",
+      "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    ];
+    let lastErr = "vision unavailable";
+    for (let attempt = 0; attempt < ladder.length; attempt++) {
+      const model = ladder[attempt]!;
+      try {
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "X-Title": "WorldSmith AI" },
+          body: JSON.stringify({
+            model,
+            messages: [{
+              role: "user",
+              content: [
+                { type: "text", text: instructions },
+                { type: "image_url", image_url: { url: `data:image/png;base64,${b64}` } },
+              ],
+            }],
+            max_tokens: 2000,
+          }),
+          signal: AbortSignal.timeout(90_000),
+        });
+        if (!res.ok) {
+          const body = await res.text().catch(() => "");
+          lastErr = `HTTP ${res.status} (${model}): ${body.slice(0, 100)}`;
+          if (res.status === 401 || res.status === 402) break; // auth/credits: fail fast
+          await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+          continue;
+        }
+        const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+        const content = data.choices?.[0]?.message?.content ?? "";
+        if (!content.trim()) { // reasoning models can emit empty content turns
+          lastErr = `empty response (${model})`;
+          await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+          continue;
+        }
+        const fenced = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+        const candidate = fenced ? fenced[1]! : content;
+        const start = candidate.indexOf("{"), end = candidate.lastIndexOf("}");
+        if (start === -1 || end === -1) {
+          lastErr = `no JSON found (${model})`;
+          await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+          continue;
+        }
+        return { ok: true, json: JSON.parse(candidate.slice(start, end + 1)) as T };
+      } catch (e) {
+        lastErr = e instanceof Error ? e.message : String(e);
+        await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+      }
+    }
+    return { ok: false, error: lastErr };
+  }
+
+  async visionJson<T>(image: Uint8Array, instructions: string): Promise<{ ok: boolean; json?: T; error?: string }> {
+    return this.rawJson<T>(image, instructions);
+  }
+
   async analyze(image: Uint8Array, instructions: string): Promise<{ ok: boolean; pass?: boolean; issues?: string[]; error?: string }> {
     const key = getCredential("openrouter");
     if (!key) return { ok: false, error: "no key" };

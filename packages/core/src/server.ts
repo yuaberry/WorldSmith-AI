@@ -54,7 +54,7 @@ async function handleApi(req: Request, path: string, url: URL): Promise<Response
     const engines = await detectEngines();
     return json({
       app: "WorldSmith AI",
-      version: "0.13.0",
+      version: "0.14.0",
       aiConfigured: aiConfigured(),
       engines,
       uiBuilt: existsSync(join(UI_DIST, "index.html")),
@@ -186,6 +186,19 @@ async function handleApi(req: Request, path: string, url: URL): Promise<Response
 
     if (req.method === "GET" && parts[3] === "tree") {
       return json({ tree: ws.listTree("", 1500) });
+    }
+    // §2/§6-A — REFERENCE IMAGES: attach visuals that steer the AI's art direction
+    if (req.method === "GET" && parts[3] === "references") {
+      const { listReferences } = await import("./references");
+      return json({ references: listReferences(p.id) });
+    }
+    if (req.method === "POST" && parts[3] === "references") {
+      const body = (await req.json().catch(() => ({}))) as { name?: string; mime?: string; data?: string };
+      if (!body.name || !body.data) return json({ error: "name e data (base64) obrigatórios" }, 400);
+      const { saveReference } = await import("./references");
+      const r = saveReference(p, body.name, body.mime ?? "application/octet-stream", body.data);
+      if (!r.ok) return json({ error: r.error }, 400);
+      return json({ ok: true, id: r.id });
     }
     if (req.method === "GET" && parts[3] === "file") {
       const rel = url.searchParams.get("path") ?? "";

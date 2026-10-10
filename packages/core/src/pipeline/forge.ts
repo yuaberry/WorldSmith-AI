@@ -43,6 +43,16 @@ async function stageAnalyze(p: ProjectRow): Promise<GamePlan> {
     engine: p.engine as EngineId,
     contentRating: p.content_rating as ContentRating | undefined,
   };
+  // §2/§6-A — reference images: vision-extracted art direction joins the brief
+  // so BOTH the LLM planner and the deterministic Art Bible inherit the look.
+  try {
+    const { analyzeReferenceImages } = await import("../references");
+    const refBrief = await analyzeReferenceImages(p);
+    if (refBrief) {
+      brief.idea = `${brief.idea}\n\n${refBrief}`;
+      stage(p.id, "analyze", "Referências visuais analisadas por visão — direção de arte incorporada ao plano.", "success");
+    }
+  } catch { /* references are a bonus; planning is text-complete without them */ }
   const { plan, usedLLM, archetypes } = await planGame(brief);
   stage(p.id, "analyze", usedLLM
     ? `Plan ready (director agent): "${plan.name}" — ${plan.flavor} slice on ${plan.engine}.`

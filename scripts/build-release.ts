@@ -10,7 +10,7 @@ import { readdirSync, readFileSync, statSync, mkdirSync, writeFileSync, existsSy
 import { join, relative } from "node:path";
 import { execSync } from "node:child_process";
 
-const VERSION = "0.13.0";
+const VERSION = "0.14.0";
 const ROOT = join(import.meta.dir, "..");
 const UI_DIST = join(ROOT, "apps", "ui", "dist");
 const EMBED_TS = join(ROOT, "packages", "core", "src", "ui-embed.generated.ts");

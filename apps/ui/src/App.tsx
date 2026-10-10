@@ -90,7 +90,7 @@ function Sidebar() {
       </div>
       <div className="px-5 py-4 border-t border-edge text-[10px] text-faint leading-relaxed">
         Imagine. <span className="text-brand-soft">Direct.</span> Build.<br />
-        <span className="text-mute">{useStudio.getState().demo ? "v0.13.0 — Web Demo" : "v0.13.0 — Live Preview"}</span>
+        <span className="text-mute">{useStudio.getState().demo ? "v0.14.0 — Web Demo" : "v0.14.0 — Live Preview"}</span>
       </div>
     </aside>
   );
