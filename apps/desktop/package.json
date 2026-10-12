@@ -94,5 +94,13 @@
     }
   },
   "homepage": "https://github.com/yuaberry/WorldSmith-AI",
-  "author": "Yua Devs"
+  "author": "Yua Devs",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "electron-builder",
+      "esbuild",
+      "app-builder-bin"
+    ]
+  }
 }
