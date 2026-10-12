@@ -90,7 +90,8 @@
         }
       ],
       "category": "public.app-category.developer-tools",
-      "artifactName": "WorldSmith-AI-${version}-arm64.${ext}"
+      "artifactName": "WorldSmith-AI-${version}-arm64.${ext}",
+      "identity": null
     }
   },
   "homepage": "https://github.com/yuaberry/WorldSmith-AI",

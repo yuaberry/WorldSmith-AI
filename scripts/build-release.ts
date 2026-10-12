@@ -53,6 +53,10 @@ for (const [target, out, label] of TARGETS) {
 
 // 3) Debian package (Linux installer): binary at /usr/bin/worldsmith-ai
 //    (PATH-friendly, no spaces), branded menu entry + icon.
+//    Linux-only: skipped honestly where dpkg-deb is unavailable (CI mac/win).
+const hasDpkg = (() => {
+  try { execSync("dpkg-deb --version", { stdio: "ignore" }); return true; } catch { return false; }
+})();
 const DEB_NAME = `worldsmith-ai_${VERSION}_amd64.deb`;
 const DEB_ROOT = join(OUT_DIR, "deb-stage");
 rmSync(DEB_ROOT, { recursive: true, force: true });
@@ -100,8 +104,13 @@ Copyright: 2026 Yua Devs
 License: MIT
 `,
 );
-execSync(`dpkg-deb --build --root-owner-group "${DEB_ROOT}" "${join(OUT_DIR, DEB_NAME)}"`, { stdio: "inherit" });
-rmSync(DEB_ROOT, { recursive: true, force: true });
+if (hasDpkg) {
+  execSync(`dpkg-deb --build --root-owner-group "${DEB_ROOT}" "${join(OUT_DIR, DEB_NAME)}"`, { stdio: "inherit" });
+  rmSync(DEB_ROOT, { recursive: true, force: true });
+} else {
+  console.log(`· dpkg-deb unavailable on ${process.platform} — .deb skipped (Linux-only artifact)`);
+  rmSync(DEB_ROOT, { recursive: true, force: true });
+}
 
 console.log(`\n✓ Standalone builds in ${OUT_DIR}:`);
 for (const [, out] of TARGETS) {
@@ -109,5 +118,5 @@ for (const [, out] of TARGETS) {
   if (existsSync(p)) console.log(`  ${out}  (${(statSync(p).size / 1048576).toFixed(1)} MB)`);
 }
 const debP = join(OUT_DIR, DEB_NAME);
-if (existsSync(debP)) console.log(`  ${DEB_NAME}  (${(statSync(debP).size / 1048576).toFixed(1)} MB) — install: sudo dpkg -i ${DEB_NAME}`);
+if (hasDpkg && existsSync(debP)) console.log(`  ${DEB_NAME}  (${(statSync(debP).size / 1048576).toFixed(1)} MB) — install: sudo dpkg -i ${DEB_NAME}`);
 console.log(`\nUsage: run the executable — it starts the studio and opens http://127.0.0.1:5180 in your browser.`);
