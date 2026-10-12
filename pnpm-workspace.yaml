@@ -2,6 +2,12 @@ packages:
   - packages/*
   - apps/*
 
+allowBuilds:
+  electron: true
+  electron-builder: true
+  esbuild: true
+  app-builder-bin: true
+
 onlyBuiltDependencies:
   - electron
   - electron-builder
