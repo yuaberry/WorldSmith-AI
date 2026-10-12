@@ -62,6 +62,35 @@
     },
     "appImage": {
       "artifactName": "WorldSmith-AI-${version}-x86_64.AppImage"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "WorldSmith-AI-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "shortcutName": "WorldSmith AI"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.developer-tools",
+      "artifactName": "WorldSmith-AI-${version}-arm64.${ext}"
     }
   },
   "homepage": "https://github.com/yuaberry/WorldSmith-AI",

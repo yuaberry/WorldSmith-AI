@@ -8,6 +8,7 @@ import { projectGodot, godotIgnore, rootScene, iconSvg, hudScript } from "./gd_c
 import { WEB_EXPORT_PRESET } from "../godotExport";
 import { sfxPickup, sfxHit, sfxClick, menuScript, gameStateProPatch } from "./gd_pro";
 import { genericQaScript } from "../systems/generic_qa";
+import { forgeMonolithGltf } from "../../assets/gltfForge";
 
 function gameState(spec: GameSpec): string {
   return `extends Node
@@ -302,6 +303,11 @@ func _build_ground() -> void:
 	add_child(mesh)
 
 func _build_rocks() -> void:
+	# §8: half the props are the REAL imported glTF monolith (the pipeline
+	# forges, validates and imports it); the rest stay primitive rocks.
+	var monolith_scene: PackedScene = null
+	if ResourceLoader.exists("res://models/monolith.gltf"):
+		monolith_scene = load("res://models/monolith.gltf") as PackedScene
 	for i in 10:
 		var body := StaticBody3D.new()
 		var pos := Vector3(
@@ -316,14 +322,22 @@ func _build_rocks() -> void:
 		box.size = size
 		shape.shape = box
 		body.add_child(shape)
-		var mesh := MeshInstance3D.new()
-		var rock := BoxMesh.new()
-		rock.size = size
-		mesh.mesh = rock
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = Color("#2e3342")
-		mesh.material_override = mat
-		body.add_child(mesh)
+		if monolith_scene != null and i % 2 == 0:
+			var mono: Node3D = monolith_scene.instantiate() as Node3D
+			var s := randf_range(0.9, 2.1)
+			mono.scale = Vector3(s, s, s)
+			mono.position.y = -0.35
+			body.add_child(mono)
+			body.add_to_group("monolith")
+		else:
+			var mesh := MeshInstance3D.new()
+			var rock := BoxMesh.new()
+			rock.size = size
+			mesh.mesh = rock
+			var mat := StandardMaterial3D.new()
+			mat.albedo_color = Color("#2e3342")
+			mesh.material_override = mat
+			body.add_child(mesh)
 		add_child(body)
 
 func _spawn_player() -> void:
@@ -369,6 +383,13 @@ func _on_died() -> void:
 }
 
 export function threeDFiles(spec: GameSpec): Record<string, string | Uint8Array> {
+  // §8/Fase 5 — REAL 3D asset: a procedural monolith forged as valid glTF,
+  // gated by the same validator any imported third-party model must pass.
+  const monolith = forgeMonolithGltf(spec.palette.accent);
+  if (!monolith.report.pass) {
+    throw new Error(`glTF monolith FAILED validation (§8):\n${monolith.report.issues.map((i) => `[${i.rule}] ${i.detail}`).join("\n")}`);
+  }
+
   return {
     "project.godot": projectGodot(spec),
     ".gitignore": godotIgnore(),
@@ -379,6 +400,7 @@ export function threeDFiles(spec: GameSpec): Record<string, string | Uint8Array>
     "scripts/game_menu.gd": menuScript(spec),
 
     "qa/functional.gd": genericQaScript(),
+    "models/monolith.gltf": monolith.json,
     "icon.svg": iconSvg(spec.palette.bg, spec.palette.accent),
     "scenes/main.tscn": rootScene("Main", "Node", "res://scripts/main.gd"),
     "scenes/player.tscn": rootScene("Player", "CharacterBody3D", "res://scripts/player.gd"),

@@ -19,11 +19,12 @@ let win = null;
 let backend = null;
 
 function backendBinary() {
-  // packaged: extraResources → resources/backend/WorldSmith AI
-  const packaged = path.join(process.resourcesPath, "backend", "WorldSmith AI");
+  const exe = process.platform === "win32" ? "WorldSmith AI.exe" : "WorldSmith AI";
+  // packaged: extraResources → resources/backend/<backend>
+  const packaged = path.join(process.resourcesPath, "backend", exe);
   if (existsSync(packaged)) return packaged;
   // dev: repo build
-  const dev = path.join(__dirname, "..", "..", "dist-release", "WorldSmith AI");
+  const dev = path.join(__dirname, "..", "..", "dist-release", exe);
   if (existsSync(dev)) return dev;
   return null;
 }

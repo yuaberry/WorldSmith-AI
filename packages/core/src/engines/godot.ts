@@ -9,7 +9,7 @@
 import { dataRoot } from "../util";
 import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
-import { chmodSync, existsSync, mkdirSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { unzipSync } from "fflate";
@@ -140,6 +140,18 @@ export class Godot4Adapter implements EngineAdapter {
       issues.push(...scanRuntimeErrors(out));
       if (issues.length === 0) {
         issues.push({ file: "-", message: out.split("\n").filter(Boolean).slice(-3).join(" | ").slice(0, 400), severity: "error" });
+      }
+    }
+
+    // §8/Fase 5: model-bearing projects need the import step BEFORE the game
+    // runs (glTF files become PackedScenes through it) — same invariant as
+    // export (§7.7), applied to validation.
+    if (exitOk && existsSync(join(wsPath, "models")) && readdirSync(join(wsPath, "models")).some((f: string) => f.endsWith(".gltf") || f.endsWith(".glb"))) {
+      try {
+        await exec(bin, ["--headless", "--path", ".", "--import"], { cwd: wsPath, timeout: 120_000, maxBuffer: 20_000_000 });
+        log += "\n— models imported (pre-run) —\n";
+      } catch (e) {
+        issues.push({ file: "models/", message: `asset import failed: ${(e instanceof Error ? e.message : String(e)).slice(0, 200)}`, severity: "error" });
       }
     }
 

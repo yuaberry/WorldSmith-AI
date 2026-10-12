@@ -132,3 +132,20 @@ describe("glTF validator (§8/Fase 5)", () => {
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
   });
 });
+
+import { forgeMonolithGltf } from "../src/assets/gltfForge";
+
+describe("glTF forge (Fase 5)", () => {
+  test("the forged monolith passes the project's own validation gate", () => {
+    const { json, report } = forgeMonolithGltf("#6f8cff");
+    expect(report.pass).toBe(true);
+    expect(report.format).toBe("gltf");
+    expect(report.stats.meshes).toBe(1);
+    expect(report.stats.materials).toBe(1);
+    expect(report.stats.vertices).toBe(60); // 30 POSITION + 30 NORMAL (flat)
+    expect(JSON.parse(json).asset.version).toBe("2.0");
+  });
+  test("monolith bytes are deterministic", () => {
+    expect(forgeMonolithGltf().json).toBe(forgeMonolithGltf().json);
+  });
+});

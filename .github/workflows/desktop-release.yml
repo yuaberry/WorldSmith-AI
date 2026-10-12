@@ -1,0 +1,66 @@
+name: Desktop installers (Win/macOS/Linux)
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: "windows-x64", os: windows-latest, electron_args: "--win nsis", backend: "WorldSmith AI.exe", artifact: "WorldSmith-AI-Setup-*.*" }
+          - { name: "macos-arm64", os: macos-latest, electron_args: "--mac dmg", backend: "WorldSmith AI-macos", artifact: "WorldSmith-AI-*.*" }
+          - { name: "linux-x64", os: ubuntu-latest, electron_args: "--linux deb appimage", backend: "WorldSmith AI", artifact: "worldsmith-ai-desktop_*.* WorldSmith-AI-*.AppImage" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: "1.4.2" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: corepack enable && corepack prepare pnpm@12.3.4 --activate
+        shell: bash
+      - name: Install workspace deps
+        run: pnpm install --no-frozen-lockfile
+        shell: bash
+      - name: Build UI + backend binaries
+        run: |
+          pnpm ui:build
+          bun run scripts/build-release.ts
+        shell: bash
+      - name: Bundle backend into the desktop app
+        run: |
+          mkdir -p apps/desktop/resources/backend
+          cp "dist-release/${{ matrix.backend }}" "apps/desktop/resources/backend/${{ matrix.backend }}"
+        shell: bash
+      - name: Install desktop packer
+        working-directory: apps/desktop
+        run: npm install --no-package-lock
+      - name: Package (${{ matrix.name }})
+        working-directory: apps/desktop
+        run: npx electron-builder ${{ matrix.electron_args }}
+      - name: Upload to release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        env: { GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+        run: |
+          cd apps/desktop/dist
+          for f in ${{ matrix.artifact }}; do
+            [ -e "$f" ] && gh release upload "${{ github.ref_name }}" "$f" --clobber || true
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.name }}
+          path: |
+            apps/desktop/dist/*.exe
+            apps/desktop/dist/*.dmg
+            apps/desktop/dist/*.deb
+            apps/desktop/dist/*.AppImage
+          if-no-files-found: ignore
