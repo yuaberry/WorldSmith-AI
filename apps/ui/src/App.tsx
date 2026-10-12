@@ -90,7 +90,7 @@ function Sidebar() {
       </div>
       <div className="px-5 py-4 border-t border-edge text-[10px] text-faint leading-relaxed">
         Imagine. <span className="text-brand-soft">Direct.</span> Build.<br />
-        <span className="text-mute">{useStudio.getState().demo ? "v0.14.0 — Web Demo" : "v0.14.0 — Live Preview"}</span>
+        <span className="text-mute">{useStudio.getState().demo ? "v0.15.0 — Web Demo" : "v0.15.0 — Live Preview"}</span>
       </div>
     </aside>
   );
@@ -139,7 +139,7 @@ function DemoBanner() {
       <span>
         Estúdio em <b>modo demo web</b> — snapshot <b>real</b> do projeto Hollow Echoes forjado pelo pipeline (DNA, tarefas, código, assets e preview jogável).
         Para forjar seus próprios jogos,{" "}
-        <a href="../#download" className="underline hover:text-ink">baixe o aplicativo</a>.
+        <a href="https://github.com/yuaberry/WorldSmith-AI/releases/latest" target="_blank" rel="noopener" className="underline hover:text-ink">baixe o aplicativo</a>.
       </span>
     </div>
   );

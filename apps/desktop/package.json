@@ -1,0 +1,69 @@
+{
+  "name": "@worldsmith/desktop",
+  "productName": "WorldSmith AI",
+  "version": "0.15.0",
+  "description": "WorldSmith AI \u2014 AI Autonomous Game Development Studio",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --linux deb appimage"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "dev.yuaberry.worldsmithai",
+    "productName": "WorldSmith AI",
+    "icon": "build/icon.png",
+    "asar": true,
+    "files": [
+      "main.js",
+      "preload.js"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/backend",
+        "to": "backend"
+      }
+    ],
+    "linux": {
+      "target": [
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Development",
+      "maintainer": "Yua Devs <yuaberry@users.noreply.github.com>",
+      "artifactName": "worldsmith-ai-desktop_${version}_${arch}.${ext}",
+      "desktop": {
+        "Name": "WorldSmith AI",
+        "Comment": "AI Autonomous Game Development Studio \u2014 Imagine. Direct. Build.",
+        "Categories": "Development;Game"
+      },
+      "executableName": "worldsmith-ai"
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnss3",
+        "libasound2",
+        "libc6"
+      ]
+    },
+    "appImage": {
+      "artifactName": "WorldSmith-AI-${version}-x86_64.AppImage"
+    }
+  },
+  "homepage": "https://github.com/yuaberry/WorldSmith-AI",
+  "author": "Yua Devs"
+}

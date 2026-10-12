@@ -95,7 +95,7 @@ worldsmith-ai/
 │           ├── db/          # SQLite real (WAL) — projetos, tasks, eventos, DNA
 │           └── server.ts    # HTTP + WebSocket (localhost) + UI estática
 ├── scripts/                 # start.sh · start.bat · start.command
-├── docs/                     # site de download (GitHub Pages) + STATUS.md
+├── docs/                     # STATUS.md + EVOLUTION.md (documentação do produto)
 ```
 
 **Decisões de arquitetura que importam:**

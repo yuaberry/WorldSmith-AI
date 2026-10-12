@@ -129,3 +129,16 @@ O compositor de salas (`mv_world.ts::_load_room`) constrói cada sala com exatam
 - **Fallback honesto**: sem chave/visão indisponível → referência armazenada + evento "análise pulada"; o forge nunca quebra por causa de referência
 
 **Próximas**: chat por projeto com anexo de imagem (Change Engine por referência) · referências de gameplay (vídeo/GIF) · DNA mostrando as referências analisadas.
+
+
+## APP DESKTOP NATIVO (v0.15.0) — e Pages ENCERRADO ✅
+
+**O WorldSmith AI agora é um aplicativo de janela nativa** — sem navegador:
+- `apps/desktop` (Electron 33): janela própria 1480×920 com ícone da marca, menu em PT, single-instance lock, links externos no browser do sistema
+- **Backend embutido**: o pacote carrega o binário standalone do estúdio (spawn em grupo próprio de processos — morre junto com a janela, PROVADO por smoke: porta livre após exit)
+- **Ícone novo 512×512** renderizado pelo próprio pixel engine: planeta com iluminação esférica real (Lambert), anel orbital, martelo forjando com faíscas, assinatura da marca (losango+ponto)
+- **Instalador profissional**: `worldsmith-ai-desktop_0.15.0_amd64.deb` (103MB — /opt, .desktop no menu, ícone hicolor, postinst/postrm, Depends corretas) + `WorldSmith-AI-0.15.0-x86_64.AppImage` (145MB portátil)
+- **Smoke tripla**: dev window ✓, pacote com backend embutido ✓ (título+URL+backend 0.15.0+exit 0), cleanup de processo ✓ (sem zumbi na porta 5180)
+- Reproducível: `bun run scripts/build-desktop.ts` (backend → bundle → deb+AppImage)
+
+**GitHub Pages REMOVIDO** (ordem do dono): site deletado via API (404 confirmado), homepage do repo limpa, `docs/` agora é só documentação (STATUS/EVOLUTION), links da UI apontam para releases do GitHub.

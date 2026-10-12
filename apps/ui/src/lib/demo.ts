@@ -54,7 +54,7 @@ export async function initDemo(): Promise<boolean> {
 }
 
 const DEMO_MUTATION_MSG =
-  "Modo demo web — o estúdio completo (forjar novos jogos, engine real, IA, builds) roda no aplicativo. Baixe o WorldSmith AI na aba Download do site.";
+  "Modo demo web — o estúdio completo (forjar novos jogos, engine real, IA, builds) roda no aplicativo. Instale o WorldSmith AI (releases no GitHub).";
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });

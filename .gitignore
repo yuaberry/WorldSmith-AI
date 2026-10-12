@@ -10,3 +10,6 @@ apps/ui/dist
 secrets*
 .vite/
 dist-release/
+apps/desktop/node_modules/
+apps/desktop/dist/
+apps/desktop/resources/
